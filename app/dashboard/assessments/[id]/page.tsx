@@ -104,7 +104,12 @@ export default function AssessmentFormPage() {
     })
     toast.success('Kanıt yüklendi!')
   }
-
+async function saveWeights() {
+  await supabase.from('assessments').update({
+    w1: weights.w1, w2: weights.w2, w3: weights.w3, w4: weights.w4
+  }).eq('id', id)
+  toast.success('Ağırlıklar kaydedildi!')
+}
   async function complete() {
     if (!allAnswered) { toast.error('Tüm kriterleri puanlayın'); return }
     setSaving(true)
@@ -187,6 +192,10 @@ export default function AssessmentFormPage() {
     ${Math.round((weights.w1+weights.w2+weights.w3+weights.w4)*100) === 100
       ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
     Toplam: %{Math.round((weights.w1+weights.w2+weights.w3+weights.w4)*100)}
+    <button onClick={saveWeights}
+  className="w-full mt-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-1 rounded-lg text-xs transition">
+  Kaydet
+</button>
   </div>
 </div>
         
