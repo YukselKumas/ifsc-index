@@ -27,11 +27,10 @@ export default function AssessmentFormPage() {
   const router = useRouter()
   const [assessment, setAssessment] = useState<any>(null)
   const [scoreRows, setScoreRows] = useState<any[]>([])
-  const [activeTab, setActiveTab] = useState<'D1' | 'D2' | 'D3' | 'D4' | 'actions'>('D1')
+  const [activeTab, setActiveTab] = useState<'D1'|'D2'|'D3'|'D4'|'actions'>('D1')
   const [weights, setWeights] = useState({ w1: 25, w2: 25, w3: 25, w4: 25 })
   const [savingWeights, setSavingWeights] = useState(false)
   const [completing, setCompleting] = useState(false)
-
   const [actions, setActions] = useState<any[]>([])
   const [newAction, setNewAction] = useState({
     title: '', description: '', responsible: '', priority: 'medium', due_date: '',
@@ -61,8 +60,7 @@ export default function AssessmentFormPage() {
   const scoreMap: Record<string, number> = {}
   scoreRows.forEach(s => { scoreMap[s.criterion_id] = s.score })
   const { dimScores, total } = calcScores(scoreMap, {
-    w1: weights.w1 / 100, w2: weights.w2 / 100,
-    w3: weights.w3 / 100, w4: weights.w4 / 100
+    w1: weights.w1/100, w2: weights.w2/100, w3: weights.w3/100, w4: weights.w4/100
   })
   const riskLevel = calcRiskLevel(total, DEFAULT_RISK_CONFIG)
   const riskMeta = RISK_META[riskLevel]
@@ -113,12 +111,11 @@ export default function AssessmentFormPage() {
   }
 
   async function saveWeights() {
-    const total = weights.w1 + weights.w2 + weights.w3 + weights.w4
-    if (total !== 100) { toast.error(`Toplam ${total}% — 100% olmalı`); return }
+    const t = weights.w1 + weights.w2 + weights.w3 + weights.w4
+    if (t !== 100) { toast.error(`Toplam ${t}% — 100% olmalı`); return }
     setSavingWeights(true)
     await supabase.from('assessments').update({
-      w1: weights.w1 / 100, w2: weights.w2 / 100,
-      w3: weights.w3 / 100, w4: weights.w4 / 100,
+      w1: weights.w1/100, w2: weights.w2/100, w3: weights.w3/100, w4: weights.w4/100,
     }).eq('id', id)
     setSavingWeights(false)
     toast.success('Ağırlıklar kaydedildi')
@@ -185,209 +182,209 @@ export default function AssessmentFormPage() {
   const scoredCount = scoreRows.length
 
   return (
-    <div className="flex h-screen overflow-hidden bg-slate-50">
+    <div style={{ display:'flex', height:'100vh', overflow:'hidden', background:'#f8fafc' }}>
 
       {/* Sol panel */}
-      <div className="w-72 border-r border-slate-200 bg-white flex flex-col overflow-y-auto flex-shrink-0">
-        <div className="p-5 border-b border-slate-100">
+      <div style={{ width:288, borderRight:'1px solid #e2e8f0', background:'white',
+        display:'flex', flexDirection:'column', overflowY:'auto', flexShrink:0 }}>
+
+        <div style={{ padding:'20px', borderBottom:'1px solid #f1f5f9' }}>
           <Link href="/dashboard/assessments"
-            className="text-xs text-slate-400 hover:text-slate-600">← Geri</Link>
-          <h2 className="font-black text-slate-900 mt-1 text-base leading-tight">
-            {assessment.facility_name}
-          </h2>
-          <p className="text-xs text-slate-400 mt-0.5">{assessment.assessment_date}</p>
+            style={{ fontSize:12, color:'#94a3b8', textDecoration:'none' }}>← Geri</Link>
+          <div style={{ fontWeight:900, color:'#0f172a', marginTop:4, fontSize:15,
+            lineHeight:1.3 }}>{assessment.facility_name}</div>
+          <div style={{ fontSize:11, color:'#94a3b8', marginTop:2 }}>{assessment.assessment_date}</div>
           {assessment.revision_number > 1 && (
-            <span className="text-xs bg-purple-100 text-purple-700 font-bold
-              px-2 py-0.5 rounded-full mt-1 inline-block">
+            <span style={{ fontSize:11, background:'#f3e8ff', color:'#7c3aed', fontWeight:700,
+              padding:'2px 8px', borderRadius:20, marginTop:4, display:'inline-block' }}>
               R{assessment.revision_number}
             </span>
           )}
         </div>
 
         {/* Skor */}
-        <div className="p-4 border-b border-slate-100">
-          <div className="bg-slate-50 rounded-2xl p-4 text-center">
-            <div className="text-4xl font-black" style={{ color: riskMeta.color }}>{total}</div>
-            <div className="text-xs text-slate-400">/ 100 puan</div>
-            <div className="mt-2 px-3 py-1 rounded-full text-xs font-bold inline-block"
-              style={{ background: riskMeta.bg, color: riskMeta.color }}>
+        <div style={{ padding:'16px', borderBottom:'1px solid #f1f5f9' }}>
+          <div style={{ background:'#f8fafc', borderRadius:16, padding:'16px', textAlign:'center' }}>
+            <div style={{ fontSize:40, fontWeight:900, color:riskMeta.color, lineHeight:1 }}>
+              {total}
+            </div>
+            <div style={{ fontSize:11, color:'#94a3b8', marginTop:2 }}>/ 100 puan</div>
+            <div style={{ marginTop:8, padding:'4px 12px', borderRadius:20, fontSize:11,
+              fontWeight:700, display:'inline-block',
+              background:riskMeta.bg, color:riskMeta.color }}>
               {riskMeta.label}
             </div>
-            <div className="mt-3 text-xs text-slate-400">
+            <div style={{ fontSize:11, color:'#94a3b8', marginTop:8 }}>
               {scoredCount}/20 kriter puanlandı
             </div>
-            <div className="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden">
-              <div className="h-full rounded-full bg-blue-500 transition-all"
-                style={{ width: `${(scoredCount/20)*100}%` }} />
+            <div style={{ marginTop:6, height:4, background:'#e2e8f0', borderRadius:4, overflow:'hidden' }}>
+              <div style={{ height:'100%', background:'#3b82f6', borderRadius:4,
+                width:`${(scoredCount/20)*100}%`, transition:'width .3s' }} />
             </div>
           </div>
         </div>
 
-        {/* Sekme butonları */}
-        <div className="p-3 border-b border-slate-100 space-y-1">
+        {/* Sekmeler */}
+        <div style={{ padding:'12px', borderBottom:'1px solid #f1f5f9', display:'flex',
+          flexDirection:'column', gap:4 }}>
           {DIMENSIONS.map(dim => {
             const s = Math.round(dimScores[dim.id] || 0)
             const isActive = activeTab === dim.id
             const dimScored = dim.criteria.filter(c =>
-              scoreRows.find(s => s.criterion_id === c.id)
+              scoreRows.find(sr => sr.criterion_id === c.id)
             ).length
             return (
-              <button key={dim.id} onClick={() => setActiveTab(dim.id as any)}
-                className="w-full text-left px-3 py-2.5 rounded-xl transition"
-                style={isActive
-                  ? { background: dim.color, color: 'white' }
-                  : { background: 'transparent', color: '#64748b' }}>
-                <div className="flex justify-between items-center">
-                  <div className="flex items-center gap-2">
-                    <span className="font-black text-xs">{dim.id}</span>
-                    <span className="text-xs opacity-80">{dim.name}</span>
+              <button key={dim.id}
+                onClick={() => setActiveTab(dim.id as any)}
+                style={{ width:'100%', textAlign:'left', padding:'10px 12px', borderRadius:12,
+                  border:'none', cursor:'pointer', transition:'all .15s',
+                  background: isActive ? dim.color : 'transparent',
+                  color: isActive ? 'white' : '#64748b' }}>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                    <span style={{ fontWeight:900, fontSize:11 }}>{dim.id}</span>
+                    <span style={{ fontSize:11 }}>{dim.name}</span>
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs opacity-70">{dimScored}/5</span>
-                    <span className="font-black text-sm">{s}</span>
+                  <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                    <span style={{ fontSize:11, opacity:.7 }}>{dimScored}/5</span>
+                    <span style={{ fontWeight:900, fontSize:13 }}>{s}</span>
                   </div>
                 </div>
                 {isActive && (
-                  <div className="mt-1.5 h-1 bg-white/30 rounded-full overflow-hidden">
-                    <div className="h-full bg-white/70 rounded-full transition-all"
-                      style={{ width: `${s}%` }} />
+                  <div style={{ marginTop:6, height:3, background:'rgba(255,255,255,.3)',
+                    borderRadius:3, overflow:'hidden' }}>
+                    <div style={{ height:'100%', background:'rgba(255,255,255,.7)',
+                      borderRadius:3, width:`${s}%` }} />
                   </div>
                 )}
               </button>
             )
           })}
-
-          {/* Aksiyonlar sekmesi */}
-          <button onClick={() => setActiveTab('actions')}
-            className="w-full text-left px-3 py-2.5 rounded-xl transition"
-            style={activeTab === 'actions'
-              ? { background: '#7c3aed', color: 'white' }
-              : { background: 'transparent', color: '#64748b' }}>
-            <div className="flex justify-between items-center">
-              <div className="flex items-center gap-2">
-                <span className="font-black text-xs">📋</span>
-                <span className="text-xs font-bold">Aksiyonlar</span>
+          <button
+            onClick={() => setActiveTab('actions')}
+            style={{ width:'100%', textAlign:'left', padding:'10px 12px', borderRadius:12,
+              border:'none', cursor:'pointer', transition:'all .15s',
+              background: activeTab === 'actions' ? '#7c3aed' : 'transparent',
+              color: activeTab === 'actions' ? 'white' : '#64748b' }}>
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontWeight:900, fontSize:11 }}>📋</span>
+                <span style={{ fontSize:11, fontWeight:700 }}>Aksiyonlar</span>
               </div>
-              <span className="text-xs font-black">{actions.length}</span>
+              <span style={{ fontWeight:900, fontSize:13 }}>{actions.length}</span>
             </div>
           </button>
         </div>
 
         {/* Ağırlıklar */}
-        <div className="p-4 border-b border-slate-100">
-          <div className="text-xs font-bold text-slate-400 uppercase mb-3">Boyut Ağırlıkları</div>
-          <div className="space-y-3">
+        <div style={{ padding:'16px', borderBottom:'1px solid #f1f5f9' }}>
+          <div style={{ fontSize:10, fontWeight:700, color:'#94a3b8', textTransform:'uppercase',
+            letterSpacing:'.05em', marginBottom:12 }}>Boyut Ağırlıkları</div>
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {DIMENSIONS.map((dim, i) => {
               const key = `w${i+1}` as keyof typeof weights
               return (
-                <div key={dim.id} className="flex items-center gap-2">
-                  <span className="text-xs font-black w-6" style={{ color: dim.color }}>
+                <div key={dim.id} style={{ display:'flex', alignItems:'center', gap:8 }}>
+                  <span style={{ fontSize:11, fontWeight:900, color:dim.color, width:20 }}>
                     {dim.id}
                   </span>
-                  <div className="flex-1">
-                    <input type="range" min={5} max={60} step={5}
-                      value={weights[key]}
-                      onChange={e => setWeights(prev => ({ ...prev, [key]: Number(e.target.value) }))}
-                      className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                      style={{ accentColor: dim.color }} />
-                  </div>
-                  <span className="text-xs font-black text-slate-600 w-8 text-right">
-                    %{weights[key]}
-                  </span>
+                  <input type="range" min={5} max={60} step={5}
+                    value={weights[key]}
+                    onChange={e => setWeights(p => ({ ...p, [key]: Number(e.target.value) }))}
+                    style={{ flex:1, accentColor:dim.color, cursor:'pointer' }} />
+                  <span style={{ fontSize:11, fontWeight:900, color:'#334155', width:28,
+                    textAlign:'right' }}>%{weights[key]}</span>
                 </div>
               )
             })}
           </div>
-          <div className={`text-xs font-bold mt-2 text-center ${
-            weightTotal === 100 ? 'text-green-600' : 'text-red-500'
-          }`}>
+          <div style={{ fontSize:11, fontWeight:700, textAlign:'center', marginTop:8,
+            color: weightTotal === 100 ? '#16a34a' : '#ef4444' }}>
             Toplam: %{weightTotal}
           </div>
           <button onClick={saveWeights} disabled={savingWeights || weightTotal !== 100}
-            className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white text-xs
-              font-bold py-2 rounded-xl disabled:opacity-40 transition">
+            style={{ width:'100%', marginTop:8, background:'#1e293b', color:'white',
+              fontSize:11, fontWeight:700, padding:'8px', borderRadius:12, border:'none',
+              cursor:'pointer', opacity: (savingWeights || weightTotal !== 100) ? .4 : 1 }}>
             {savingWeights ? 'Kaydediliyor...' : 'Kaydet'}
           </button>
         </div>
 
-        {/* Tamamla butonu */}
-        <div className="p-4">
+        {/* Tamamla */}
+        <div style={{ padding:'16px' }}>
           <button onClick={completeAssessment} disabled={completing}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold
-              py-3 rounded-2xl text-sm transition disabled:opacity-40">
+            style={{ width:'100%', background:'#16a34a', color:'white', fontWeight:700,
+              fontSize:14, padding:'12px', borderRadius:16, border:'none', cursor:'pointer',
+              opacity: completing ? .4 : 1 }}>
             {completing ? 'Tamamlanıyor...' : '✓ Değerlendirmeyi Tamamla'}
           </button>
         </div>
       </div>
 
       {/* Sağ panel */}
-      <div className="flex-1 overflow-y-auto p-6">
+      <div style={{ flex:1, overflowY:'auto', padding:'24px' }}>
 
-        {/* Kriter sekmesi */}
         {activeTab !== 'actions' && activeDim && (
           <>
-            <div className="mb-6 flex items-center gap-3">
-              <div className="w-4 h-4 rounded-full flex-shrink-0"
-                style={{ background: activeDim.color }} />
+            <div style={{ marginBottom:24, display:'flex', alignItems:'center', gap:12 }}>
+              <div style={{ width:14, height:14, borderRadius:'50%',
+                background:activeDim.color, flexShrink:0 }} />
               <div>
-                <h2 className="font-black text-xl text-slate-900">{activeDim.name}</h2>
-                <p className="text-slate-400 text-sm">
+                <div style={{ fontWeight:900, fontSize:20, color:'#0f172a' }}>
+                  {activeDim.name}
+                </div>
+                <div style={{ fontSize:13, color:'#94a3b8', marginTop:2 }}>
                   {activeDim.criteria.filter(c =>
                     scoreRows.find(s => s.criterion_id === c.id)
                   ).length}/{activeDim.criteria.length} kriter puanlandı
-                </p>
+                </div>
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div style={{ display:'flex', flexDirection:'column', gap:16 }}>
               {activeDim.criteria.map(c => {
                 const row = scoreRows.find(s => s.criterion_id === c.id)
                 const score = row?.score ?? null
                 return (
-                  <div key={c.id} className="bg-white rounded-2xl border border-slate-200
-                    p-5 shadow-sm">
-                    <div className="flex items-start gap-3 mb-4">
-                      <span className="text-xs font-black text-slate-300 mt-0.5 w-12
-                        flex-shrink-0 font-mono">
-                        {c.id}
-                      </span>
-                      <p className="font-semibold text-slate-800 text-sm leading-relaxed flex-1">
-                        {c.name}
-                      </p>
+                  <div key={c.id} style={{ background:'white', borderRadius:20,
+                    border:'1px solid #e2e8f0', padding:20, boxShadow:'0 1px 4px rgba(0,0,0,.04)' }}>
+
+                    <div style={{ display:'flex', gap:12, marginBottom:16 }}>
+                      <span style={{ fontSize:11, fontWeight:900, color:'#cbd5e1',
+                        flexShrink:0, fontFamily:'monospace', marginTop:2 }}>{c.id}</span>
+                      <span style={{ fontSize:14, fontWeight:600, color:'#1e293b',
+                        lineHeight:1.5 }}>{c.name}</span>
                     </div>
 
-                    {/* Puan butonları - ESKİ ÇALIŞAN HALİ */}
-                    <div className="flex gap-2 mb-4">
+                    {/* Puan butonları */}
+                    <div style={{ display:'flex', gap:8, marginBottom:16 }}>
                       {[0,1,2,3,4,5].map(v => {
-  const isSelected = score === v
-  return (
-    <button
-      key={v}
-      type="button"
-      onClick={() => setScore(c.id, v)}
-      style={{
-        flex: 1,
-        padding: '10px 0',
-        borderRadius: '12px',
-        fontSize: '14px',
-        fontWeight: 900,
-        cursor: 'pointer',
-        border: `2px solid ${isSelected ? activeDim.color : '#e2e8f0'}`,
-        background: isSelected ? activeDim.color : '#ffffff',
-        color: isSelected ? 'white' : '#94a3b8',
-        transition: 'all 0.15s',
-      }}>
-      {v}
-    </button>
-  )
-})}
+                        const isSelected = score === v
+                        return (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setScore(c.id, v)}
+                            style={{
+                              flex:1, padding:'10px 0', borderRadius:12,
+                              fontSize:14, fontWeight:900, cursor:'pointer',
+                              border:`2px solid ${isSelected ? activeDim.color : '#e2e8f0'}`,
+                              background: isSelected ? activeDim.color : '#ffffff',
+                              color: isSelected ? 'white' : '#94a3b8',
+                              transition:'all .15s',
+                            }}>
+                            {v}
+                          </button>
+                        )
+                      })}
+                    </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:12 }}>
                       <select
                         value={row?.evidence_type || ''}
                         onChange={e => updateEvidenceType(c.id, e.target.value)}
-                        className="border border-slate-200 rounded-xl px-3 py-2.5 text-xs
-                          focus:outline-none focus:border-blue-400 text-slate-600 bg-white">
+                        style={{ border:'1px solid #e2e8f0', borderRadius:12, padding:'8px 12px',
+                          fontSize:12, color:'#475569', background:'white', cursor:'pointer' }}>
                         <option value="">Kanıt türü seçin</option>
                         {EVIDENCE_TYPES.map(et => (
                           <option key={et.value} value={et.value}>{et.label}</option>
@@ -397,19 +394,20 @@ export default function AssessmentFormPage() {
                         defaultValue={row?.note || ''}
                         onBlur={e => updateNote(c.id, e.target.value)}
                         placeholder="Not ekle..."
-                        className="border border-slate-200 rounded-xl px-3 py-2.5 text-xs
-                          focus:outline-none focus:border-blue-400" />
+                        style={{ border:'1px solid #e2e8f0', borderRadius:12, padding:'8px 12px',
+                          fontSize:12, color:'#475569', outline:'none' }} />
                     </div>
 
                     {score !== null && score >= 4 && (
-                      <div className="mt-3">
-                        <label className="flex items-center gap-2 cursor-pointer w-fit">
-                          <span className="text-xs text-slate-500">Kanıt dosyası:</span>
-                          <input type="file" className="hidden"
+                      <div style={{ marginTop:12 }}>
+                        <label style={{ display:'flex', alignItems:'center', gap:8,
+                          cursor:'pointer', width:'fit-content' }}>
+                          <span style={{ fontSize:12, color:'#64748b' }}>Kanıt dosyası:</span>
+                          <input type="file" style={{ display:'none' }}
                             onChange={e => e.target.files &&
                               uploadEvidence(c.id, e.target.files[0])} />
-                          <span className="text-xs bg-blue-50 text-blue-600 font-bold
-                            px-3 py-1.5 rounded-lg cursor-pointer hover:bg-blue-100 transition">
+                          <span style={{ fontSize:12, background:'#eff6ff', color:'#2563eb',
+                            fontWeight:700, padding:'6px 12px', borderRadius:8, cursor:'pointer' }}>
                             {row?.evidence_url ? '✓ Yüklendi' : '+ Dosya Yükle'}
                           </span>
                         </label>
@@ -422,91 +420,91 @@ export default function AssessmentFormPage() {
           </>
         )}
 
-        {/* Aksiyonlar sekmesi */}
         {activeTab === 'actions' && (
           <div>
-            <div className="flex justify-between items-center mb-5">
+            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center',
+              marginBottom:20 }}>
               <div>
-                <h2 className="font-black text-xl text-slate-900">Aksiyon Planı</h2>
-                <p className="text-slate-400 text-sm mt-0.5">
+                <div style={{ fontWeight:900, fontSize:20, color:'#0f172a' }}>Aksiyon Planı</div>
+                <div style={{ fontSize:13, color:'#94a3b8', marginTop:2 }}>
                   Yapılması gereken işleri takip edin
-                </p>
+                </div>
               </div>
               <button onClick={() => setAddingAction(true)}
-                className="bg-violet-600 hover:bg-violet-700 text-white px-4 py-2.5
-                  rounded-xl text-sm font-bold transition">
+                style={{ background:'#7c3aed', color:'white', fontWeight:700, fontSize:13,
+                  padding:'10px 18px', borderRadius:12, border:'none', cursor:'pointer' }}>
                 + Aksiyon Ekle
               </button>
             </div>
 
             {addingAction && (
-              <div className="bg-violet-50 border border-violet-200 rounded-2xl p-5 mb-5">
-                <div className="font-bold text-violet-800 mb-4 text-sm">Yeni Aksiyon</div>
-                <div className="space-y-3">
+              <div style={{ background:'#faf5ff', border:'1px solid #ddd6fe', borderRadius:20,
+                padding:20, marginBottom:20 }}>
+                <div style={{ fontWeight:700, color:'#5b21b6', marginBottom:16, fontSize:14 }}>
+                  Yeni Aksiyon
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase block mb-1">
-                      Başlık / Yapılacak İş *
-                    </label>
+                    <div style={{ fontSize:10, fontWeight:700, color:'#94a3b8',
+                      textTransform:'uppercase', marginBottom:4 }}>Başlık *</div>
                     <input value={newAction.title}
                       onChange={e => setNewAction(p => ({ ...p, title: e.target.value }))}
                       placeholder="ör: HACCP belgelerini güncelle"
-                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm
-                        focus:outline-none focus:border-violet-400" />
+                      style={{ width:'100%', border:'1px solid #e2e8f0', borderRadius:12,
+                        padding:'10px 14px', fontSize:13, boxSizing:'border-box' }} />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-500 uppercase block mb-1">
-                      Açıklama
-                    </label>
+                    <div style={{ fontSize:10, fontWeight:700, color:'#94a3b8',
+                      textTransform:'uppercase', marginBottom:4 }}>Açıklama</div>
                     <textarea value={newAction.description}
                       onChange={e => setNewAction(p => ({ ...p, description: e.target.value }))}
-                      placeholder="Detaylı açıklama..."
-                      rows={2}
-                      className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm
-                        focus:outline-none focus:border-violet-400 resize-none" />
+                      placeholder="Detaylı açıklama..." rows={2}
+                      style={{ width:'100%', border:'1px solid #e2e8f0', borderRadius:12,
+                        padding:'10px 14px', fontSize:13, resize:'none', boxSizing:'border-box' }} />
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:12 }}>
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase block mb-1">
-                        Sorumlu Kişi
-                      </label>
+                      <div style={{ fontSize:10, fontWeight:700, color:'#94a3b8',
+                        textTransform:'uppercase', marginBottom:4 }}>Sorumlu</div>
                       <input value={newAction.responsible}
                         onChange={e => setNewAction(p => ({ ...p, responsible: e.target.value }))}
                         placeholder="Ad Soyad"
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5
-                          text-sm focus:outline-none focus:border-violet-400" />
+                        style={{ width:'100%', border:'1px solid #e2e8f0', borderRadius:12,
+                          padding:'10px 14px', fontSize:13, boxSizing:'border-box' }} />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase block mb-1">
-                        Öncelik
-                      </label>
+                      <div style={{ fontSize:10, fontWeight:700, color:'#94a3b8',
+                        textTransform:'uppercase', marginBottom:4 }}>Öncelik</div>
                       <select value={newAction.priority}
                         onChange={e => setNewAction(p => ({ ...p, priority: e.target.value }))}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5
-                          text-sm focus:outline-none focus:border-violet-400 bg-white">
+                        style={{ width:'100%', border:'1px solid #e2e8f0', borderRadius:12,
+                          padding:'10px 14px', fontSize:13, background:'white',
+                          boxSizing:'border-box' }}>
                         {PRIORITY_OPTIONS.map(p => (
                           <option key={p.value} value={p.value}>{p.label}</option>
                         ))}
                       </select>
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-slate-500 uppercase block mb-1">
-                        Son Tarih
-                      </label>
+                      <div style={{ fontSize:10, fontWeight:700, color:'#94a3b8',
+                        textTransform:'uppercase', marginBottom:4 }}>Son Tarih</div>
                       <input type="date" value={newAction.due_date}
                         onChange={e => setNewAction(p => ({ ...p, due_date: e.target.value }))}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5
-                          text-sm focus:outline-none focus:border-violet-400" />
+                        style={{ width:'100%', border:'1px solid #e2e8f0', borderRadius:12,
+                          padding:'10px 14px', fontSize:13, boxSizing:'border-box' }} />
                     </div>
                   </div>
-                  <div className="flex gap-2 pt-1">
+                  <div style={{ display:'flex', gap:8, marginTop:4 }}>
                     <button onClick={() => setAddingAction(false)}
-                      className="flex-1 border border-slate-200 text-slate-600 font-bold
-                        py-2.5 rounded-xl text-sm hover:bg-slate-50 transition">
+                      style={{ flex:1, border:'1px solid #e2e8f0', background:'white',
+                        color:'#475569', fontWeight:700, padding:'10px', borderRadius:12,
+                        cursor:'pointer', fontSize:13 }}>
                       İptal
                     </button>
                     <button onClick={addAction} disabled={savingAction}
-                      className="flex-1 bg-violet-600 hover:bg-violet-700 text-white
-                        font-bold py-2.5 rounded-xl text-sm transition disabled:opacity-40">
+                      style={{ flex:1, background:'#7c3aed', color:'white', fontWeight:700,
+                        padding:'10px', borderRadius:12, border:'none', cursor:'pointer',
+                        fontSize:13, opacity: savingAction ? .5 : 1 }}>
                       {savingAction ? 'Kaydediliyor...' : '+ Ekle'}
                     </button>
                   </div>
@@ -515,15 +513,18 @@ export default function AssessmentFormPage() {
             )}
 
             {actions.length === 0 && !addingAction ? (
-              <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
-                <div className="text-4xl mb-3">📋</div>
-                <div className="text-slate-500 font-bold mb-1">Henüz aksiyon yok</div>
-                <div className="text-slate-400 text-sm">
+              <div style={{ background:'white', borderRadius:20, border:'1px solid #f1f5f9',
+                padding:48, textAlign:'center' }}>
+                <div style={{ fontSize:40, marginBottom:12 }}>📋</div>
+                <div style={{ fontWeight:700, color:'#475569', marginBottom:4 }}>
+                  Henüz aksiyon yok
+                </div>
+                <div style={{ fontSize:13, color:'#94a3b8' }}>
                   Değerlendirme sonucunda yapılması gereken işleri buraya ekleyin
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                 {actions.map(action => {
                   const prio = PRIORITY_OPTIONS.find(p => p.value === action.priority)
                   const isDone = action.status === 'done'
@@ -531,53 +532,55 @@ export default function AssessmentFormPage() {
                     new Date(action.due_date) < new Date() && !isDone
                   return (
                     <div key={action.id}
-                      className={`bg-white rounded-2xl border p-4 transition ${
-                        isDone ? 'opacity-60 border-slate-100' : 'border-slate-200 shadow-sm'
-                      }`}>
-                      <div className="flex items-start gap-3">
+                      style={{ background:'white', borderRadius:20, padding:16,
+                        border:`1px solid ${isDone ? '#f1f5f9' : '#e2e8f0'}`,
+                        opacity: isDone ? .65 : 1,
+                        boxShadow: isDone ? 'none' : '0 1px 4px rgba(0,0,0,.04)' }}>
+                      <div style={{ display:'flex', alignItems:'flex-start', gap:12 }}>
                         <button onClick={() => toggleActionStatus(action)}
-                          className="w-5 h-5 rounded-md border-2 flex-shrink-0 mt-0.5
-                            flex items-center justify-center transition"
-                          style={isDone
-                            ? { background: '#22c55e', borderColor: '#22c55e', color: 'white' }
-                            : { borderColor: '#cbd5e1' }}>
-                          {isDone && <span className="text-xs font-black">✓</span>}
+                          style={{ width:20, height:20, borderRadius:6, flexShrink:0,
+                            marginTop:2, display:'flex', alignItems:'center',
+                            justifyContent:'center', cursor:'pointer', transition:'all .15s',
+                            border: isDone ? 'none' : '2px solid #cbd5e1',
+                            background: isDone ? '#22c55e' : 'transparent' }}>
+                          {isDone && <span style={{ color:'white', fontSize:11,
+                            fontWeight:900 }}>✓</span>}
                         </button>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`font-bold text-sm ${
-                              isDone ? 'line-through text-slate-400' : 'text-slate-800'
-                            }`}>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ display:'flex', alignItems:'center', gap:8,
+                            flexWrap:'wrap' }}>
+                            <span style={{ fontWeight:700, fontSize:14,
+                              color: isDone ? '#94a3b8' : '#1e293b',
+                              textDecoration: isDone ? 'line-through' : 'none' }}>
                               {action.title}
                             </span>
                             {prio && (
-                              <span className="text-xs font-bold px-2 py-0.5 rounded-full"
-                                style={{ background: prio.bg, color: prio.color }}>
+                              <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px',
+                                borderRadius:20, background:prio.bg, color:prio.color }}>
                                 {prio.label}
                               </span>
                             )}
                             {isDone && (
-                              <span className="text-xs font-bold px-2 py-0.5 rounded-full
-                                bg-green-100 text-green-600">
+                              <span style={{ fontSize:11, fontWeight:700, padding:'2px 8px',
+                                borderRadius:20, background:'#f0fdf4', color:'#16a34a' }}>
                                 Tamamlandı
                               </span>
                             )}
                           </div>
                           {action.description && (
-                            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
-                              {action.description}
-                            </p>
+                            <div style={{ fontSize:12, color:'#64748b', marginTop:4,
+                              lineHeight:1.6 }}>{action.description}</div>
                           )}
-                          <div className="flex items-center gap-3 mt-2 flex-wrap">
+                          <div style={{ display:'flex', gap:12, marginTop:6,
+                            flexWrap:'wrap' }}>
                             {action.responsible && (
-                              <span className="text-xs text-slate-400">
+                              <span style={{ fontSize:11, color:'#94a3b8' }}>
                                 👤 {action.responsible}
                               </span>
                             )}
                             {action.due_date && (
-                              <span className={`text-xs font-bold ${
-                                isOverdue ? 'text-red-500' : 'text-slate-400'
-                              }`}>
+                              <span style={{ fontSize:11, fontWeight:700,
+                                color: isOverdue ? '#ef4444' : '#94a3b8' }}>
                                 📅 {new Date(action.due_date).toLocaleDateString('tr-TR')}
                                 {isOverdue && ' — Gecikmiş!'}
                               </span>
@@ -585,28 +588,25 @@ export default function AssessmentFormPage() {
                           </div>
                         </div>
                         <button onClick={() => deleteAction(action.id)}
-                          className="text-slate-300 hover:text-red-400 transition
-                            text-xl flex-shrink-0 leading-none">
+                          style={{ color:'#cbd5e1', fontSize:20, background:'none',
+                            border:'none', cursor:'pointer', lineHeight:1, flexShrink:0 }}>
                           ×
                         </button>
                       </div>
                     </div>
                   )
                 })}
-
-                <div className="bg-slate-50 rounded-xl p-3 flex gap-4 text-xs text-slate-500">
+                <div style={{ background:'#f8fafc', borderRadius:12, padding:12,
+                  display:'flex', gap:16, fontSize:12, color:'#64748b' }}>
                   <span>Toplam: <strong>{actions.length}</strong></span>
-                  <span>Tamamlanan: <strong className="text-green-600">
-                    {actions.filter(a => a.status === 'done').length}
-                  </strong></span>
-                  <span>Bekleyen: <strong className="text-amber-600">
-                    {actions.filter(a => a.status === 'open').length}
-                  </strong></span>
-                  <span>Gecikmiş: <strong className="text-red-500">
+                  <span>Tamamlanan: <strong style={{ color:'#16a34a' }}>
+                    {actions.filter(a => a.status === 'done').length}</strong></span>
+                  <span>Bekleyen: <strong style={{ color:'#d97706' }}>
+                    {actions.filter(a => a.status === 'open').length}</strong></span>
+                  <span>Gecikmiş: <strong style={{ color:'#ef4444' }}>
                     {actions.filter(a =>
                       a.due_date && new Date(a.due_date) < new Date() && a.status === 'open'
-                    ).length}
-                  </strong></span>
+                    ).length}</strong></span>
                 </div>
               </div>
             )}
