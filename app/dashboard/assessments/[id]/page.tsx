@@ -32,14 +32,9 @@ export default function AssessmentFormPage() {
   const [savingWeights, setSavingWeights] = useState(false)
   const [completing, setCompleting] = useState(false)
 
-  // Aksiyon state
   const [actions, setActions] = useState<any[]>([])
   const [newAction, setNewAction] = useState({
-    title: '',
-    description: '',
-    responsible: '',
-    priority: 'medium',
-    due_date: '',
+    title: '', description: '', responsible: '', priority: 'medium', due_date: '',
   })
   const [addingAction, setAddingAction] = useState(false)
   const [savingAction, setSavingAction] = useState(false)
@@ -130,10 +125,10 @@ export default function AssessmentFormPage() {
   }
 
   async function completeAssessment() {
-    const allDimensions = DIMENSIONS.every(dim =>
+    const allScored = DIMENSIONS.every(dim =>
       dim.criteria.every(c => scoreRows.find(s => s.criterion_id === c.id))
     )
-    if (!allDimensions) { toast.error('Tüm kriterler puanlanmalı'); return }
+    if (!allScored) { toast.error('Tüm kriterler puanlanmalı'); return }
     setCompleting(true)
     const w = { w1: weights.w1/100, w2: weights.w2/100, w3: weights.w3/100, w4: weights.w4/100 }
     const { dimScores: ds, total: t } = calcScores(scoreMap, w)
@@ -188,17 +183,16 @@ export default function AssessmentFormPage() {
   const weightTotal = weights.w1 + weights.w2 + weights.w3 + weights.w4
   const activeDim = DIMENSIONS.find(d => d.id === activeTab)
   const scoredCount = scoreRows.length
-  const totalCriteria = 20
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-hidden bg-slate-50">
 
       {/* Sol panel */}
-      <div className="w-72 border-r border-slate-100 bg-slate-50 flex flex-col p-5 gap-4 overflow-y-auto">
-        <div>
+      <div className="w-72 border-r border-slate-200 bg-white flex flex-col overflow-y-auto flex-shrink-0">
+        <div className="p-5 border-b border-slate-100">
           <Link href="/dashboard/assessments"
             className="text-xs text-slate-400 hover:text-slate-600">← Geri</Link>
-          <h2 className="font-black text-slate-900 mt-1 text-lg leading-tight">
+          <h2 className="font-black text-slate-900 mt-1 text-base leading-tight">
             {assessment.facility_name}
           </h2>
           <p className="text-xs text-slate-400 mt-0.5">{assessment.assessment_date}</p>
@@ -211,80 +205,95 @@ export default function AssessmentFormPage() {
         </div>
 
         {/* Skor */}
-        <div className="bg-white rounded-2xl p-4 border border-slate-200 text-center">
-          <div className="text-4xl font-black" style={{ color: riskMeta.color }}>{total}</div>
-          <div className="text-xs text-slate-400">/ 100 puan</div>
-          <div className="mt-2 px-3 py-1 rounded-full text-xs font-bold inline-block"
-            style={{ background: riskMeta.bg, color: riskMeta.color }}>
-            {riskMeta.label}
-          </div>
-          <div className="mt-3 text-xs text-slate-400">
-            {scoredCount}/{totalCriteria} kriter puanlandı
-          </div>
-          <div className="mt-2 h-1.5 bg-slate-100 rounded-full">
-            <div className="h-full rounded-full bg-blue-500"
-              style={{ width: `${(scoredCount/totalCriteria)*100}%` }} />
+        <div className="p-4 border-b border-slate-100">
+          <div className="bg-slate-50 rounded-2xl p-4 text-center">
+            <div className="text-4xl font-black" style={{ color: riskMeta.color }}>{total}</div>
+            <div className="text-xs text-slate-400">/ 100 puan</div>
+            <div className="mt-2 px-3 py-1 rounded-full text-xs font-bold inline-block"
+              style={{ background: riskMeta.bg, color: riskMeta.color }}>
+              {riskMeta.label}
+            </div>
+            <div className="mt-3 text-xs text-slate-400">
+              {scoredCount}/20 kriter puanlandı
+            </div>
+            <div className="mt-2 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+              <div className="h-full rounded-full bg-blue-500 transition-all"
+                style={{ width: `${(scoredCount/20)*100}%` }} />
+            </div>
           </div>
         </div>
 
-        {/* Boyut skorları */}
-        <div className="space-y-2">
+        {/* Sekme butonları */}
+        <div className="p-3 border-b border-slate-100 space-y-1">
           {DIMENSIONS.map(dim => {
             const s = Math.round(dimScores[dim.id] || 0)
             const isActive = activeTab === dim.id
+            const dimScored = dim.criteria.filter(c =>
+              scoreRows.find(s => s.criterion_id === c.id)
+            ).length
             return (
               <button key={dim.id} onClick={() => setActiveTab(dim.id as any)}
-                className={`w-full text-left px-3 py-2.5 rounded-xl border transition ${
-                  isActive
-                    ? 'border-current'
-                    : 'border-transparent hover:bg-white'
-                }`}
-                style={isActive ? { background: dim.bg, borderColor: dim.color + '60' } : {}}>
+                className="w-full text-left px-3 py-2.5 rounded-xl transition"
+                style={isActive
+                  ? { background: dim.color, color: 'white' }
+                  : { background: 'transparent', color: '#64748b' }}>
                 <div className="flex justify-between items-center">
-                  <span className="text-xs font-bold" style={{ color: dim.color }}>{dim.id}</span>
-                  <span className="text-xs font-black" style={{ color: dim.color }}>{s}</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-black text-xs">{dim.id}</span>
+                    <span className="text-xs opacity-80">{dim.name}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-xs opacity-70">{dimScored}/5</span>
+                    <span className="font-black text-sm">{s}</span>
+                  </div>
                 </div>
-                <div className="text-xs text-slate-500 mt-0.5">{dim.name}</div>
-                <div className="mt-1.5 h-1 bg-slate-200 rounded-full">
-                  <div className="h-full rounded-full"
-                    style={{ width: `${s}%`, background: dim.color }} />
-                </div>
+                {isActive && (
+                  <div className="mt-1.5 h-1 bg-white/30 rounded-full overflow-hidden">
+                    <div className="h-full bg-white/70 rounded-full transition-all"
+                      style={{ width: `${s}%` }} />
+                  </div>
+                )}
               </button>
             )
           })}
+
           {/* Aksiyonlar sekmesi */}
           <button onClick={() => setActiveTab('actions')}
-            className={`w-full text-left px-3 py-2.5 rounded-xl border transition ${
-              activeTab === 'actions'
-                ? 'border-violet-300 bg-violet-50'
-                : 'border-transparent hover:bg-white'
-            }`}>
+            className="w-full text-left px-3 py-2.5 rounded-xl transition"
+            style={activeTab === 'actions'
+              ? { background: '#7c3aed', color: 'white' }
+              : { background: 'transparent', color: '#64748b' }}>
             <div className="flex justify-between items-center">
-              <span className="text-xs font-bold text-violet-600">📋 Aksiyonlar</span>
-              <span className="text-xs font-black text-violet-600 bg-violet-100
-                px-2 py-0.5 rounded-full">{actions.length}</span>
+              <div className="flex items-center gap-2">
+                <span className="font-black text-xs">📋</span>
+                <span className="text-xs font-bold">Aksiyonlar</span>
+              </div>
+              <span className="text-xs font-black">{actions.length}</span>
             </div>
-            <div className="text-xs text-slate-500 mt-0.5">Yapılacaklar listesi</div>
           </button>
         </div>
 
         {/* Ağırlıklar */}
-        <div className="bg-white rounded-2xl p-4 border border-slate-200">
-          <div className="text-xs font-bold text-slate-500 uppercase mb-3">Boyut Ağırlıkları</div>
-          <div className="space-y-2">
+        <div className="p-4 border-b border-slate-100">
+          <div className="text-xs font-bold text-slate-400 uppercase mb-3">Boyut Ağırlıkları</div>
+          <div className="space-y-3">
             {DIMENSIONS.map((dim, i) => {
               const key = `w${i+1}` as keyof typeof weights
               return (
-                <div key={dim.id}>
-                  <div className="flex justify-between text-xs mb-1">
-                    <span style={{ color: dim.color }} className="font-bold">{dim.id}</span>
-                    <span className="font-black text-slate-700">%{weights[key]}</span>
+                <div key={dim.id} className="flex items-center gap-2">
+                  <span className="text-xs font-black w-6" style={{ color: dim.color }}>
+                    {dim.id}
+                  </span>
+                  <div className="flex-1">
+                    <input type="range" min={5} max={60} step={5}
+                      value={weights[key]}
+                      onChange={e => setWeights(prev => ({ ...prev, [key]: Number(e.target.value) }))}
+                      className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
+                      style={{ accentColor: dim.color }} />
                   </div>
-                  <input type="range" min={5} max={60} step={5}
-                    value={weights[key]}
-                    onChange={e => setWeights(prev => ({ ...prev, [key]: Number(e.target.value) }))}
-                    className="w-full h-1.5 rounded-full appearance-none cursor-pointer"
-                    style={{ accentColor: dim.color }} />
+                  <span className="text-xs font-black text-slate-600 w-8 text-right">
+                    %{weights[key]}
+                  </span>
                 </div>
               )
             })}
@@ -295,73 +304,90 @@ export default function AssessmentFormPage() {
             Toplam: %{weightTotal}
           </div>
           <button onClick={saveWeights} disabled={savingWeights || weightTotal !== 100}
-            className="w-full mt-2 bg-slate-800 text-white text-xs font-bold py-2
-              rounded-xl disabled:opacity-40 hover:bg-slate-700 transition">
+            className="w-full mt-2 bg-slate-800 hover:bg-slate-700 text-white text-xs
+              font-bold py-2 rounded-xl disabled:opacity-40 transition">
             {savingWeights ? 'Kaydediliyor...' : 'Kaydet'}
           </button>
         </div>
 
-        {/* Tamamla */}
-        <button onClick={completeAssessment} disabled={completing}
-          className="w-full bg-green-600 hover:bg-green-700 text-white font-bold
-            py-3 rounded-2xl text-sm transition disabled:opacity-40">
-          {completing ? 'Tamamlanıyor...' : '✓ Değerlendirmeyi Tamamla'}
-        </button>
+        {/* Tamamla butonu */}
+        <div className="p-4">
+          <button onClick={completeAssessment} disabled={completing}
+            className="w-full bg-green-600 hover:bg-green-700 text-white font-bold
+              py-3 rounded-2xl text-sm transition disabled:opacity-40">
+            {completing ? 'Tamamlanıyor...' : '✓ Değerlendirmeyi Tamamla'}
+          </button>
+        </div>
       </div>
 
-      {/* Sağ panel - içerik */}
+      {/* Sağ panel */}
       <div className="flex-1 overflow-y-auto p-6">
 
-        {/* Kriter sekmeleri */}
+        {/* Kriter sekmesi */}
         {activeTab !== 'actions' && activeDim && (
           <>
-            <div className="mb-5">
-              <div className="flex items-center gap-3 mb-1">
-                <div className="w-3 h-3 rounded-full" style={{ background: activeDim.color }} />
+            <div className="mb-6 flex items-center gap-3">
+              <div className="w-4 h-4 rounded-full flex-shrink-0"
+                style={{ background: activeDim.color }} />
+              <div>
                 <h2 className="font-black text-xl text-slate-900">{activeDim.name}</h2>
+                <p className="text-slate-400 text-sm">
+                  {activeDim.criteria.filter(c =>
+                    scoreRows.find(s => s.criterion_id === c.id)
+                  ).length}/{activeDim.criteria.length} kriter puanlandı
+                </p>
               </div>
-              <p className="text-slate-400 text-sm ml-6">
-                {activeDim.criteria.filter(c => scoreRows.find(s => s.criterion_id === c.id)).length}
-                /{activeDim.criteria.length} kriter puanlandı
-              </p>
             </div>
 
             <div className="space-y-4">
-              {activeDim.criteria.map((c, idx) => {
+              {activeDim.criteria.map(c => {
                 const row = scoreRows.find(s => s.criterion_id === c.id)
                 const score = row?.score ?? null
                 return (
-                  <div key={c.id} className="bg-white rounded-2xl border border-slate-100 p-5">
+                  <div key={c.id} className="bg-white rounded-2xl border border-slate-200
+                    p-5 shadow-sm">
                     <div className="flex items-start gap-3 mb-4">
-                      <span className="text-xs font-black text-slate-300 mt-0.5 w-10 flex-shrink-0">
+                      <span className="text-xs font-black text-slate-300 mt-0.5 w-12
+                        flex-shrink-0 font-mono">
                         {c.id}
                       </span>
-                      <div className="flex-1">
-                        <p className="font-bold text-slate-800 text-sm leading-relaxed">{c.name}</p>
-                      </div>
+                      <p className="font-semibold text-slate-800 text-sm leading-relaxed flex-1">
+                        {c.name}
+                      </p>
                     </div>
 
-                    {/* Puan butonları */}
-<div className="flex gap-2 mb-4">
-  {[0,1,2,3,4,5].map(v => (
-    <button key={v} onClick={() => setScore(c.id, v)}
-      className="flex-1 py-3 rounded-xl text-sm font-black transition border-2"
-      style={
-        score === v
-          ? { background: activeDim.color, borderColor: activeDim.color, color: 'white' }
-          : { background: 'white', borderColor: '#e2e8f0', color: '#94a3b8' }
-      }>
-      {v}
-    </button>
-  ))}
-</div>
+                    {/* Puan butonları - ESKİ ÇALIŞAN HALİ */}
+                    <div className="flex gap-2 mb-4">
+                      {[0,1,2,3,4,5].map(v => {
+                        const isSelected = score === v
+                        return (
+                          <button
+                            key={v}
+                            type="button"
+                            onClick={() => setScore(c.id, v)}
+                            style={isSelected ? {
+                              background: activeDim.color,
+                              borderColor: activeDim.color,
+                              color: 'white',
+                            } : {
+                              background: '#ffffff',
+                              borderColor: '#e2e8f0',
+                              color: '#94a3b8',
+                            }}
+                            className="flex-1 py-3 rounded-xl text-sm font-black
+                              border-2 cursor-pointer hover:opacity-80 transition-opacity">
+                            {v}
+                          </button>
+                        )
+                      })}
+                    </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <select
                         value={row?.evidence_type || ''}
                         onChange={e => updateEvidenceType(c.id, e.target.value)}
-                        className="border border-slate-200 rounded-xl px-3 py-2 text-xs
-                          focus:outline-none focus:border-blue-400 text-slate-600">
+                        className="border border-slate-200 rounded-xl px-3 py-2.5 text-xs
+                          focus:outline-none focus:border-blue-400 text-slate-600 bg-white">
                         <option value="">Kanıt türü seçin</option>
                         {EVIDENCE_TYPES.map(et => (
                           <option key={et.value} value={et.value}>{et.label}</option>
@@ -371,18 +397,19 @@ export default function AssessmentFormPage() {
                         defaultValue={row?.note || ''}
                         onBlur={e => updateNote(c.id, e.target.value)}
                         placeholder="Not ekle..."
-                        className="border border-slate-200 rounded-xl px-3 py-2 text-xs
+                        className="border border-slate-200 rounded-xl px-3 py-2.5 text-xs
                           focus:outline-none focus:border-blue-400" />
                     </div>
 
-                    {(score !== null && score >= 4) && (
+                    {score !== null && score >= 4 && (
                       <div className="mt-3">
-                        <label className="flex items-center gap-2 cursor-pointer">
+                        <label className="flex items-center gap-2 cursor-pointer w-fit">
                           <span className="text-xs text-slate-500">Kanıt dosyası:</span>
                           <input type="file" className="hidden"
-                            onChange={e => e.target.files && uploadEvidence(c.id, e.target.files[0])} />
+                            onChange={e => e.target.files &&
+                              uploadEvidence(c.id, e.target.files[0])} />
                           <span className="text-xs bg-blue-50 text-blue-600 font-bold
-                            px-3 py-1.5 rounded-lg cursor-pointer hover:bg-blue-100">
+                            px-3 py-1.5 rounded-lg cursor-pointer hover:bg-blue-100 transition">
                             {row?.evidence_url ? '✓ Yüklendi' : '+ Dosya Yükle'}
                           </span>
                         </label>
@@ -412,7 +439,6 @@ export default function AssessmentFormPage() {
               </button>
             </div>
 
-            {/* Yeni aksiyon formu */}
             {addingAction && (
               <div className="bg-violet-50 border border-violet-200 rounded-2xl p-5 mb-5">
                 <div className="font-bold text-violet-800 mb-4 text-sm">Yeni Aksiyon</div>
@@ -446,8 +472,8 @@ export default function AssessmentFormPage() {
                       <input value={newAction.responsible}
                         onChange={e => setNewAction(p => ({ ...p, responsible: e.target.value }))}
                         placeholder="Ad Soyad"
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm
-                          focus:outline-none focus:border-violet-400" />
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5
+                          text-sm focus:outline-none focus:border-violet-400" />
                     </div>
                     <div>
                       <label className="text-xs font-bold text-slate-500 uppercase block mb-1">
@@ -455,8 +481,8 @@ export default function AssessmentFormPage() {
                       </label>
                       <select value={newAction.priority}
                         onChange={e => setNewAction(p => ({ ...p, priority: e.target.value }))}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm
-                          focus:outline-none focus:border-violet-400">
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5
+                          text-sm focus:outline-none focus:border-violet-400 bg-white">
                         {PRIORITY_OPTIONS.map(p => (
                           <option key={p.value} value={p.value}>{p.label}</option>
                         ))}
@@ -468,8 +494,8 @@ export default function AssessmentFormPage() {
                       </label>
                       <input type="date" value={newAction.due_date}
                         onChange={e => setNewAction(p => ({ ...p, due_date: e.target.value }))}
-                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm
-                          focus:outline-none focus:border-violet-400" />
+                        className="w-full border border-slate-200 rounded-xl px-3 py-2.5
+                          text-sm focus:outline-none focus:border-violet-400" />
                     </div>
                   </div>
                   <div className="flex gap-2 pt-1">
@@ -479,8 +505,8 @@ export default function AssessmentFormPage() {
                       İptal
                     </button>
                     <button onClick={addAction} disabled={savingAction}
-                      className="flex-1 bg-violet-600 hover:bg-violet-700 text-white font-bold
-                        py-2.5 rounded-xl text-sm transition disabled:opacity-40">
+                      className="flex-1 bg-violet-600 hover:bg-violet-700 text-white
+                        font-bold py-2.5 rounded-xl text-sm transition disabled:opacity-40">
                       {savingAction ? 'Kaydediliyor...' : '+ Ekle'}
                     </button>
                   </div>
@@ -488,8 +514,7 @@ export default function AssessmentFormPage() {
               </div>
             )}
 
-            {/* Aksiyon listesi */}
-            {actions.length === 0 ? (
+            {actions.length === 0 && !addingAction ? (
               <div className="bg-white rounded-2xl border border-slate-100 p-12 text-center">
                 <div className="text-4xl mb-3">📋</div>
                 <div className="text-slate-500 font-bold mb-1">Henüz aksiyon yok</div>
@@ -502,24 +527,22 @@ export default function AssessmentFormPage() {
                 {actions.map(action => {
                   const prio = PRIORITY_OPTIONS.find(p => p.value === action.priority)
                   const isDone = action.status === 'done'
-                  const isOverdue = action.due_date && new Date(action.due_date) < new Date() && !isDone
+                  const isOverdue = action.due_date &&
+                    new Date(action.due_date) < new Date() && !isDone
                   return (
                     <div key={action.id}
                       className={`bg-white rounded-2xl border p-4 transition ${
-                        isDone ? 'opacity-60 border-slate-100' : 'border-slate-200'
+                        isDone ? 'opacity-60 border-slate-100' : 'border-slate-200 shadow-sm'
                       }`}>
                       <div className="flex items-start gap-3">
-                        {/* Checkbox */}
                         <button onClick={() => toggleActionStatus(action)}
-                          className={`w-5 h-5 rounded-md border-2 flex-shrink-0 mt-0.5
-                            flex items-center justify-center transition ${
-                            isDone
-                              ? 'bg-green-500 border-green-500 text-white'
-                              : 'border-slate-300 hover:border-green-400'
-                          }`}>
-                          {isDone && <span className="text-xs">✓</span>}
+                          className="w-5 h-5 rounded-md border-2 flex-shrink-0 mt-0.5
+                            flex items-center justify-center transition"
+                          style={isDone
+                            ? { background: '#22c55e', borderColor: '#22c55e', color: 'white' }
+                            : { borderColor: '#cbd5e1' }}>
+                          {isDone && <span className="text-xs font-black">✓</span>}
                         </button>
-
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className={`font-bold text-sm ${
@@ -561,10 +584,9 @@ export default function AssessmentFormPage() {
                             )}
                           </div>
                         </div>
-
                         <button onClick={() => deleteAction(action.id)}
-                          className="text-slate-300 hover:text-red-400 transition text-lg
-                            flex-shrink-0">
+                          className="text-slate-300 hover:text-red-400 transition
+                            text-xl flex-shrink-0 leading-none">
                           ×
                         </button>
                       </div>
@@ -572,7 +594,6 @@ export default function AssessmentFormPage() {
                   )
                 })}
 
-                {/* Özet */}
                 <div className="bg-slate-50 rounded-xl p-3 flex gap-4 text-xs text-slate-500">
                   <span>Toplam: <strong>{actions.length}</strong></span>
                   <span>Tamamlanan: <strong className="text-green-600">
