@@ -17,21 +17,18 @@ export default function AssessmentsPage() {
       .then(({ data }) => data && setAssessments(data))
   }, [])
 
-  // Firmalara göre grupla
-  const groupedByFacility = assessments.reduce((acc, a) => {
+  const groupedByFacility = assessments.reduce<Record<string, any[]>>((acc, a) => {
     const key = a.facility_name
     if (!acc[key]) acc[key] = []
     acc[key].push(a)
     return acc
-  }, {} as Record<string, any[]>)
+  }, {})
 
-  // Her grubun en son revizyonunu bul
   const facilityGroups = Object.entries(groupedByFacility).map(([name, items]) => {
     const sorted = [...items].sort((a, b) => b.revision_number - a.revision_number)
     return { name, latest: sorted[0], all: sorted }
   })
 
-  // Filtrele
   const filtered = facilityGroups
     .filter(g => search === '' || g.name.toLowerCase().includes(search.toLowerCase()))
     .filter(g => {
@@ -65,7 +62,6 @@ export default function AssessmentsPage() {
         </Link>
       </div>
 
-      {/* Filtre */}
       <div className="flex gap-3 mb-6 flex-wrap">
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Firma adı ara..."
@@ -87,16 +83,16 @@ export default function AssessmentsPage() {
         </div>
       </div>
 
-      {/* Firma grupları */}
       <div className="space-y-3">
         {filtered.map(({ name, latest, all }) => {
-          const meta = latest.risk_level ? RISK_META[latest.risk_level as keyof typeof RISK_META] : null
+          const meta = latest.risk_level
+            ? RISK_META[latest.risk_level as keyof typeof RISK_META]
+            : null
           const isExpanded = expandedFacilities.has(name)
           const hasMultiple = all.length > 1
 
           return (
             <div key={name} className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-              {/* Ana satır - en son revizyon */}
               <div className="p-5 flex justify-between items-center">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center
@@ -125,25 +121,33 @@ export default function AssessmentsPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4">
+                <div className="flex items-center gap-3">
                   {latest.status === 'completed' && (
                     <>
                       <div className="text-center">
-                        <div className="text-2xl font-black text-slate-900">{latest.total_score}</div>
+                        <div className="text-2xl font-black text-slate-900">
+                          {latest.total_score}
+                        </div>
                         <div className="text-xs text-slate-400">/ 100</div>
                       </div>
                       <div className="w-20">
                         <div className="h-2 bg-slate-100 rounded-full">
                           <div className="h-full rounded-full"
-                            style={{ width: `${latest.total_score}%`, background: meta?.color || '#94a3b8' }} />
+                            style={{
+                              width: `${latest.total_score}%`,
+                              background: meta?.color || '#94a3b8'
+                            }} />
                         </div>
                       </div>
                     </>
                   )}
 
                   {meta ? (
-                    <span style={{ background: meta.bg, color: meta.color, borderColor: meta.border }}
-                      className="px-3 py-1 rounded-full text-xs font-bold border">
+                    <span style={{
+                      background: meta.bg,
+                      color: meta.color,
+                      borderColor: meta.border
+                    }} className="px-3 py-1 rounded-full text-xs font-bold border">
                       {meta.label}
                     </span>
                   ) : (
@@ -162,42 +166,45 @@ export default function AssessmentsPage() {
                     {latest.status === 'completed' ? '📊 Raporu Gör' : '✏️ Devam Et'}
                   </Link>
 
-                  {/* Firma tarihçesi butonu */}
-                  <Link href={`/dashboard/facilities/${latest.facility_id || latest.id}`}
+                  <Link
+                    href={`/dashboard/facilities/${latest.facility_id || latest.id}`}
                     className="border border-slate-200 hover:bg-slate-50 text-slate-600
                       px-3 py-2 rounded-xl text-xs font-bold transition">
                     🕐 Tarihçe
                   </Link>
 
-                  {/* Revizyon genişlet */}
                   {hasMultiple && (
                     <button onClick={() => toggleExpand(name)}
                       className="border border-slate-200 hover:bg-slate-50 text-slate-600
-                        px-3 py-2 rounded-xl text-xs font-bold transition">
+                        w-9 h-9 rounded-xl text-xs font-bold transition flex items-center
+                        justify-center">
                       {isExpanded ? '▲' : '▼'}
                     </button>
                   )}
                 </div>
               </div>
 
-              {/* Revizyon geçmişi (expandable) */}
               {isExpanded && hasMultiple && (
                 <div className="border-t border-slate-100 bg-slate-50">
                   {all.slice(1).map(a => {
-                    const aMeta = a.risk_level ? RISK_META[a.risk_level as keyof typeof RISK_META] : null
+                    const aMeta = a.risk_level
+                      ? RISK_META[a.risk_level as keyof typeof RISK_META]
+                      : null
                     return (
                       <div key={a.id}
                         className="px-5 py-3 flex justify-between items-center
                           border-b border-slate-100 last:border-0">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-white border border-slate-200 rounded-lg
-                            flex items-center justify-center">
+                          <div className="w-8 h-8 bg-white border border-slate-200
+                            rounded-lg flex items-center justify-center">
                             <span className="text-xs font-black text-slate-400">
                               R{a.revision_number}
                             </span>
                           </div>
                           <div>
-                            <div className="text-xs font-bold text-slate-600">{a.assessment_date}</div>
+                            <div className="text-xs font-bold text-slate-600">
+                              {a.assessment_date}
+                            </div>
                             {a.notes && (
                               <div className="text-xs text-slate-400">{a.notes}</div>
                             )}
