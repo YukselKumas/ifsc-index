@@ -174,11 +174,11 @@ export default function AssessmentsPage() {
                     href={latest.status === 'completed'
                       ? `/dashboard/assessments/${latest.id}/result`
                       : `/dashboard/assessments/${latest.id}`}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition w-28 text-center
-                      ${latest.status === 'completed'
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                        : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
-                    {latest.status === 'completed' ? '📊 Raporu Gör' : '✏️ Devam Et'}
+                    className={`px-3 py-2 rounded-xl text-xs font-bold transition w-32 text-center whitespace-nowrap
+  ${latest.status === 'completed'
+    ? 'bg-blue-600 hover:bg-blue-700 text-white'
+    : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
+{latest.status === 'completed' ? '📊 Raporu Gör' : '✏️ Devam Et'}
                   </Link>
 
                   {/* Tarihçe */}
@@ -277,9 +277,9 @@ export default function AssessmentsPage() {
                             href={a.status === 'completed'
                               ? `/dashboard/assessments/${a.id}/result`
                               : `/dashboard/assessments/${a.id}`}
-                            className="px-4 py-2 rounded-xl text-xs font-bold transition
-                              w-28 text-center border border-slate-200 hover:bg-slate-100
-                              text-slate-600">
+                            className="px-3 py-2 rounded-xl text-xs font-bold transition
+  w-32 text-center whitespace-nowrap border border-slate-200 hover:bg-slate-100
+  text-slate-600">
                             {a.status === 'completed' ? '📊 Raporu Gör' : '✏️ Devam Et'}
                           </Link>
                           <div className="w-24" />
