@@ -342,24 +342,21 @@ export default function AssessmentFormPage() {
                     </div>
 
                     {/* Puan butonları */}
-                    <div className="flex gap-2 mb-4 ml-13">
-                      {[0,1,2,3,4,5].map(v => (
-                        <button key={v} onClick={() => setScore(c.id, v)}
-                          className={`flex-1 py-2.5 rounded-xl text-sm font-black transition border ${
-                            score === v
-                              ? 'text-white border-transparent'
-                              : 'bg-white text-slate-400 border-slate-200 hover:border-current'
-                          }`}
-                          style={score === v ? {
-                            background: activeDim.color,
-                            borderColor: activeDim.color
-                          } : {}}>
-                          {v}
-                        </button>
-                      ))}
-                    </div>
+<div className="flex gap-2 mb-4">
+  {[0,1,2,3,4,5].map(v => (
+    <button key={v} onClick={() => setScore(c.id, v)}
+      className="flex-1 py-3 rounded-xl text-sm font-black transition border-2"
+      style={
+        score === v
+          ? { background: activeDim.color, borderColor: activeDim.color, color: 'white' }
+          : { background: 'white', borderColor: '#e2e8f0', color: '#94a3b8' }
+      }>
+      {v}
+    </button>
+  ))}
+</div>
 
-                    <div className="grid grid-cols-2 gap-3 ml-13">
+                    <div className="grid grid-cols-2 gap-3">
                       <select
                         value={row?.evidence_type || ''}
                         onChange={e => updateEvidenceType(c.id, e.target.value)}
@@ -379,7 +376,7 @@ export default function AssessmentFormPage() {
                     </div>
 
                     {(score !== null && score >= 4) && (
-                      <div className="mt-3 ml-13">
+                      <div className="mt-3">
                         <label className="flex items-center gap-2 cursor-pointer">
                           <span className="text-xs text-slate-500">Kanıt dosyası:</span>
                           <input type="file" className="hidden"
