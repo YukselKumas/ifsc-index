@@ -359,28 +359,28 @@ export default function AssessmentFormPage() {
                     {/* Puan butonları - ESKİ ÇALIŞAN HALİ */}
                     <div className="flex gap-2 mb-4">
                       {[0,1,2,3,4,5].map(v => {
-                        const isSelected = score === v
-                        return (
-                          <button
-                            key={v}
-                            type="button"
-                            onClick={() => setScore(c.id, v)}
-                            style={isSelected ? {
-                              background: activeDim.color,
-                              borderColor: activeDim.color,
-                              color: 'white',
-                            } : {
-                              background: '#ffffff',
-                              borderColor: '#e2e8f0',
-                              color: '#94a3b8',
-                            }}
-                            className="flex-1 py-3 rounded-xl text-sm font-black
-                              border-2 cursor-pointer hover:opacity-80 transition-opacity">
-                            {v}
-                          </button>
-                        )
-                      })}
-                    </div>
+  const isSelected = score === v
+  return (
+    <button
+      key={v}
+      type="button"
+      onClick={() => setScore(c.id, v)}
+      style={{
+        flex: 1,
+        padding: '10px 0',
+        borderRadius: '12px',
+        fontSize: '14px',
+        fontWeight: 900,
+        cursor: 'pointer',
+        border: `2px solid ${isSelected ? activeDim.color : '#e2e8f0'}`,
+        background: isSelected ? activeDim.color : '#ffffff',
+        color: isSelected ? 'white' : '#94a3b8',
+        transition: 'all 0.15s',
+      }}>
+      {v}
+    </button>
+  )
+})}
 
                     <div className="grid grid-cols-2 gap-3">
                       <select
