@@ -67,6 +67,8 @@ export default function AssessmentsPage() {
         {filtered.map(a => {
           const meta = a.risk_level ? RISK_META[a.risk_level as keyof typeof RISK_META] : null
           const pct = a.total_score || 0
+          const isCompleted = a.status === 'completed'
+
           return (
             <div key={a.id}
               className="bg-white rounded-2xl border border-slate-100 p-5 flex justify-between items-center hover:shadow-sm transition">
@@ -82,7 +84,7 @@ export default function AssessmentsPage() {
               </div>
 
               <div className="flex items-center gap-5">
-                {a.status === 'completed' && (
+                {isCompleted && (
                   <>
                     <div className="text-center">
                       <div className="text-2xl font-black text-slate-900">{a.total_score}</div>
@@ -91,10 +93,7 @@ export default function AssessmentsPage() {
                     <div className="w-24">
                       <div className="h-2 bg-slate-100 rounded-full">
                         <div className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${pct}%`,
-                            background: meta?.color || '#94a3b8'
-                          }} />
+                          style={{ width: `${pct}%`, background: meta?.color || '#94a3b8' }} />
                       </div>
                     </div>
                   </>
@@ -112,9 +111,11 @@ export default function AssessmentsPage() {
                 )}
 
                 <Link
-                  href={`/dashboard/assessments/${a.id}`}
+                  href={isCompleted
+                    ? `/dashboard/assessments/${a.id}/result`
+                    : `/dashboard/assessments/${a.id}`}
                   className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-xs font-bold transition">
-                  {a.status === 'draft' ? 'Devam Et' : 'Görüntüle'}
+                  {isCompleted ? '📊 Raporu Gör' : '✏️ Devam Et'}
                 </Link>
               </div>
             </div>
