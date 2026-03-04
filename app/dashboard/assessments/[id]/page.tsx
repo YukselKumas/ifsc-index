@@ -251,11 +251,12 @@ export default function AssessmentFormPage() {
                   </div>
                 </div>
                 {isActive && (
-                  <div style={{ marginTop:6, height:3, background:'rgba(255,255,255,.3)',
-                    borderRadius:3, overflow:'hidden' }}>
-                    <div style={{ height:'100%', background:'rgba(255,255,255,.7)',
-                      borderRadius:3, width:`${s}%` }} />
-                  </div>
+<div style={{ marginTop:6, height:3, borderRadius:3, overflow:'hidden',
+  background: isActive ? 'rgba(255,255,255,.25)' : 'rgba(0,0,0,.06)' }}>
+  <div style={{ height:'100%', borderRadius:3,
+    background: isActive ? 'rgba(255,255,255,.8)' : dim.color,
+    width:`${s}%` }} />
+</div>
                 )}
               </button>
             )
