@@ -9,7 +9,6 @@ import toast from 'react-hot-toast'
 
 export default function ResultPage() {
   const { id } = useParams()
-  const router = useRouter()
   const [assessment, setAssessment] = useState<any>(null)
   const [scoreRows, setScoreRows] = useState<any[]>([])
   const [mailTo, setMailTo] = useState('')
@@ -51,12 +50,247 @@ export default function ResultPage() {
     setSending(false)
   }
 
-  function printPDF() { window.print() }
+  async function downloadPDF() {
+    const { jsPDF } = await import('jspdf')
+    const autoTable = (await import('jspdf-autotable')).default
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+    const W = 210
+    const riskColors: Record<string, [number,number,number]> = {
+      strong: [22, 163, 74],
+      moderate: [202, 138, 4],
+      risk: [234, 88, 12],
+      critical: [220, 38, 38],
+    }
+    const rc = riskColors[riskLevel]
+
+    // ── KAPAK ──────────────────────────────────────────
+    // Koyu arka plan
+    doc.setFillColor(15, 23, 42)
+    doc.rect(0, 0, W, 90, 'F')
+
+    // Başlık
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(22)
+    doc.setFont('helvetica', 'bold')
+    doc.text('IFSC INDEX', 20, 28)
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(148, 163, 184)
+    doc.text('Gida Guvenlik Kulturu Degerlendirme Raporu', 20, 36)
+
+    // Tesis bilgileri
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(14)
+    doc.setFont('helvetica', 'bold')
+    doc.text(assessment.facility_name, 20, 52)
+    doc.setFontSize(9)
+    doc.setFont('helvetica', 'normal')
+    doc.setTextColor(148, 163, 184)
+    doc.text(`Tarih: ${assessment.assessment_date}`, 20, 59)
+    if (assessment.facility_type) doc.text(`Tesis Tipi: ${assessment.facility_type}`, 20, 65)
+
+    // Skor kutusu (sağ taraf)
+    doc.setFillColor(...rc)
+    doc.roundedRect(140, 18, 50, 55, 4, 4, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(42)
+    doc.setFont('helvetica', 'bold')
+    doc.text(String(total), 165, 50, { align: 'center' })
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'normal')
+    doc.text('/ 100 puan', 165, 58, { align: 'center' })
+    doc.setFontSize(12)
+    doc.setFont('helvetica', 'bold')
+    doc.text(riskMeta.label.toUpperCase(), 165, 67, { align: 'center' })
+
+    // Risk açıklaması
+    doc.setFillColor(30, 41, 59)
+    doc.rect(0, 90, W, 18, 'F')
+    doc.setTextColor(148, 163, 184)
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'normal')
+    const splitDesc = doc.splitTextToSize(riskMeta.description, W - 40)
+    doc.text(splitDesc, 20, 99)
+
+    // ── BOYUT SKORLARI ──────────────────────────────────
+    let y = 120
+    doc.setTextColor(15, 23, 42)
+    doc.setFontSize(13)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Boyut Skorlari', 20, y)
+    y += 8
+
+    const dimColors: Record<string, [number,number,number]> = {
+      D1: [37, 99, 235],
+      D2: [22, 163, 74],
+      D3: [147, 51, 234],
+      D4: [220, 38, 38],
+    }
+
+    DIMENSIONS.forEach((dim, i) => {
+      const score = Math.round(dimScores[dim.id] || 0)
+      const col = dimColors[dim.id]
+      const x = 20 + i * 42
+
+      // Kart arka planı
+      doc.setFillColor(248, 250, 252)
+      doc.roundedRect(x, y, 38, 28, 3, 3, 'F')
+      doc.setDrawColor(...col)
+      doc.setLineWidth(0.5)
+      doc.roundedRect(x, y, 38, 28, 3, 3, 'S')
+
+      // Boyut ID
+      doc.setTextColor(...col)
+      doc.setFontSize(7)
+      doc.setFont('helvetica', 'bold')
+      doc.text(dim.id, x + 4, y + 6)
+
+      // Skor
+      doc.setFontSize(20)
+      doc.text(String(score), x + 19, y + 18, { align: 'center' })
+
+      // Boyut adı
+      doc.setFontSize(6)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(100, 116, 139)
+      const dimNameShort = dim.name.length > 14 ? dim.name.substring(0, 14) + '..' : dim.name
+      doc.text(dimNameShort, x + 19, y + 24, { align: 'center' })
+
+      // Progress bar
+      doc.setFillColor(226, 232, 240)
+      doc.rect(x + 4, y + 26, 30, 1.5, 'F')
+      doc.setFillColor(...col)
+      doc.rect(x + 4, y + 26, 30 * (score / 100), 1.5, 'F')
+    })
+
+    y += 40
+
+    // En güçlü / En kritik
+    doc.setFillColor(240, 253, 244)
+    doc.roundedRect(20, y, 80, 12, 2, 2, 'F')
+    doc.setTextColor(22, 163, 74)
+    doc.setFontSize(8)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`En Guclu: ${bestDimName}`, 24, y + 7)
+
+    doc.setFillColor(254, 242, 242)
+    doc.roundedRect(110, y, 80, 12, 2, 2, 'F')
+    doc.setTextColor(220, 38, 38)
+    doc.text(`En Kritik: ${worstDimName}`, 114, y + 7)
+    y += 22
+
+    // ── KRİTER DETAYLARI ──────────────────────────────
+    doc.setTextColor(15, 23, 42)
+    doc.setFontSize(13)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Kriter Detaylari', 20, y)
+    y += 6
+
+    const tableBody: any[] = []
+    DIMENSIONS.forEach(dim => {
+      // Boyut başlık satırı
+      tableBody.push([
+        { content: dim.name.toUpperCase(), colSpan: 4,
+          styles: { fillColor: dimColors[dim.id], textColor: [255,255,255], fontStyle: 'bold', fontSize: 8 } }
+      ])
+      dim.criteria.forEach(c => {
+        const row = scoreRows.find(s => s.criterion_id === c.id)
+        const score = row?.score ?? '-'
+        const bar = typeof score === 'number' ? '█'.repeat(score) + '░'.repeat(5 - score) : '-----'
+        tableBody.push([
+          { content: c.id, styles: { textColor: [148,163,184], fontSize: 7, fontStyle: 'bold' } },
+          { content: c.name, styles: { fontSize: 7 } },
+          { content: row?.note || '', styles: { fontSize: 6, textColor: [100,116,139] } },
+          { content: `${score}/5`, styles: { halign: 'center', fontStyle: 'bold', fontSize: 9,
+            textColor: dimColors[dim.id] } },
+        ])
+      })
+    })
+
+    autoTable(doc, {
+      startY: y,
+      head: [['ID', 'Kriter', 'Not', 'Puan']],
+      body: tableBody,
+      columnStyles: {
+        0: { cellWidth: 14 },
+        1: { cellWidth: 100 },
+        2: { cellWidth: 60 },
+        3: { cellWidth: 16 },
+      },
+      headStyles: { fillColor: [30, 41, 59], textColor: [255,255,255], fontSize: 8 },
+      styles: { cellPadding: 2.5, overflow: 'linebreak', fontSize: 7 },
+      margin: { left: 20, right: 20 },
+    })
+
+    // ── ÖNERİLER ──────────────────────────────────────
+    const finalY = (doc as any).lastAutoTable.finalY + 10
+    doc.addPage()
+    let oy = 20
+
+    doc.setFillColor(15, 23, 42)
+    doc.rect(0, 0, W, 14, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(11)
+    doc.setFont('helvetica', 'bold')
+    doc.text('Oneriler ve Aksiyon Plani', 20, 9)
+    oy = 24
+
+    // Risk seviyesi önerileri
+    doc.setFillColor(...rc, 20)
+    doc.setFillColor(rc[0], rc[1], rc[2])
+    doc.setFillColor(248, 250, 252)
+    doc.roundedRect(20, oy, W - 40, 8, 2, 2, 'F')
+    doc.setTextColor(...rc)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`${riskMeta.label} Seviyesi Onerileri`, 24, oy + 5.5)
+    oy += 12
+
+    riskMeta.recommendations.forEach(r => {
+      doc.setTextColor(51, 65, 85)
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      const lines = doc.splitTextToSize(`→  ${r}`, W - 50)
+      doc.text(lines, 24, oy)
+      oy += lines.length * 5 + 2
+    })
+
+    oy += 6
+    doc.setTextColor(15, 23, 42)
+    doc.setFontSize(10)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`En Kritik Boyut: ${worstDimName}`, 20, oy)
+    oy += 8
+
+    DIMENSION_RECOMMENDATIONS[worstDim]?.forEach(r => {
+      doc.setTextColor(71, 85, 105)
+      doc.setFontSize(8)
+      doc.setFont('helvetica', 'normal')
+      const lines = doc.splitTextToSize(`•  ${r}`, W - 50)
+      doc.text(lines, 24, oy)
+      oy += lines.length * 5 + 2
+    })
+
+    // Footer
+    const pageCount = doc.getNumberOfPages()
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i)
+      doc.setFillColor(15, 23, 42)
+      doc.rect(0, 287, W, 10, 'F')
+      doc.setTextColor(148, 163, 184)
+      doc.setFontSize(7)
+      doc.text('IFSC Index — Gida Guvenlik Kulturu Degerlendirme Sistemi', 20, 293)
+      doc.text(`Sayfa ${i} / ${pageCount}`, W - 20, 293, { align: 'right' })
+    }
+
+    doc.save(`IFSC-Rapor-${assessment.facility_name}-${assessment.assessment_date}.pdf`)
+    toast.success('PDF indirildi!')
+  }
 
   return (
     <div className="p-8 max-w-5xl">
       {/* Aksiyonlar */}
-      <div className="flex justify-between items-center mb-6 print:hidden">
+      <div className="flex justify-between items-center mb-6">
         <div>
           <Link href="/dashboard/assessments" className="text-slate-400 text-sm hover:text-slate-600">
             ← Değerlendirmelere Dön
@@ -66,12 +300,12 @@ export default function ResultPage() {
         </div>
         <div className="flex gap-2 items-center">
           <Link href={`/dashboard/assessments/${id}`}
-  className="border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50">
-  ✏️ Düzenle
-</Link>
-          <button onClick={printPDF}
             className="border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50">
-            🖨️ PDF İndir
+            ✏️ Düzenle
+          </Link>
+          <button onClick={downloadPDF}
+            className="border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50">
+            📥 PDF İndir
           </button>
           <input value={mailTo} onChange={e => setMailTo(e.target.value)}
             placeholder="mail@firma.com"
@@ -85,7 +319,7 @@ export default function ResultPage() {
 
       {/* Ana skor kartı */}
       <div className="rounded-3xl p-8 mb-6 text-white"
-        style={{ background: `linear-gradient(135deg, #1e293b, #334155)` }}>
+        style={{ background: 'linear-gradient(135deg, #1e293b, #334155)' }}>
         <div className="flex justify-between items-start">
           <div>
             <div className="text-sm opacity-60 mb-1 uppercase tracking-widest">IFSC Index Skoru</div>
@@ -112,18 +346,15 @@ export default function ResultPage() {
       <div className="grid grid-cols-4 gap-4 mb-6">
         {DIMENSIONS.map(dim => {
           const score = Math.round(dimScores[dim.id] || 0)
-          const pct = score
           return (
             <div key={dim.id} style={{ background: dim.bg, borderColor: dim.color + '40' }}
               className="rounded-2xl p-4 border">
-              <div className="text-xs font-bold mb-2 opacity-70" style={{ color: dim.color }}>
-                {dim.id}
-              </div>
+              <div className="text-xs font-bold mb-2 opacity-70" style={{ color: dim.color }}>{dim.id}</div>
               <div className="text-2xl font-black" style={{ color: dim.color }}>{score}</div>
               <div className="text-xs opacity-60" style={{ color: dim.color }}>/ 100</div>
               <div className="text-xs font-bold mt-2" style={{ color: dim.color }}>{dim.name}</div>
               <div className="mt-2 h-1.5 bg-white/50 rounded-full">
-                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: dim.color }} />
+                <div className="h-full rounded-full" style={{ width: `${score}%`, background: dim.color }} />
               </div>
             </div>
           )
@@ -147,7 +378,6 @@ export default function ResultPage() {
                   const row = scoreRows.find(s => s.criterion_id === c.id)
                   const score = row?.score ?? '-'
                   const scoreNum = typeof score === 'number' ? score : 0
-                  const barWidth = (scoreNum / 5) * 100
                   return (
                     <tr key={c.id} className="hover:bg-slate-50">
                       <td className="px-4 py-3 w-20">
@@ -168,7 +398,7 @@ export default function ResultPage() {
                         <div className="flex items-center gap-2">
                           <div className="flex-1 h-2 bg-slate-100 rounded-full">
                             <div className="h-full rounded-full"
-                              style={{ width: `${barWidth}%`, background: dim.color }} />
+                              style={{ width: `${(scoreNum/5)*100}%`, background: dim.color }} />
                           </div>
                           <span className="font-black text-sm w-4" style={{ color: dim.color }}>{score}</span>
                         </div>
@@ -183,7 +413,7 @@ export default function ResultPage() {
       </div>
 
       {/* Öneriler */}
-      <div className="bg-white rounded-2xl border border-slate-100 p-6 mb-6">
+      <div className="bg-white rounded-2xl border border-slate-100 p-6">
         <h2 className="font-black text-slate-900 mb-4">Öneriler ve Aksiyon Planı</h2>
         <div className="mb-4 p-4 rounded-xl" style={{ background: riskMeta.bg, borderColor: riskMeta.border }}>
           <div className="font-bold mb-2" style={{ color: riskMeta.color }}>
@@ -198,9 +428,7 @@ export default function ResultPage() {
           </ul>
         </div>
         <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
-          <div className="font-bold text-slate-700 mb-2 text-sm">
-            En Kritik Boyut: {worstDimName}
-          </div>
+          <div className="font-bold text-slate-700 mb-2 text-sm">En Kritik Boyut: {worstDimName}</div>
           <ul className="space-y-1">
             {DIMENSION_RECOMMENDATIONS[worstDim]?.map((r, i) => (
               <li key={i} className="text-sm text-slate-600 flex gap-2">
