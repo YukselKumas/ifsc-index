@@ -65,6 +65,10 @@ export default function ResultPage() {
           <p className="text-slate-500 text-sm">{assessment.facility_name} · {assessment.assessment_date}</p>
         </div>
         <div className="flex gap-2 items-center">
+          <Link href={`/dashboard/assessments/${id}`}
+  className="border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50">
+  ✏️ Düzenle
+</Link>
           <button onClick={printPDF}
             className="border border-slate-200 px-4 py-2 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50">
             🖨️ PDF İndir
