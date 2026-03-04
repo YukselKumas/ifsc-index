@@ -62,7 +62,8 @@ export default function AssessmentsPage() {
         </Link>
       </div>
 
-      <div className="flex gap-3 mb-6 flex-wrap">
+      {/* Filtreler */}
+      <div className="flex gap-3 mb-6 flex-wrap items-center">
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Firma adı ara..."
           className="border border-slate-200 rounded-xl px-4 py-2 text-sm
@@ -83,7 +84,8 @@ export default function AssessmentsPage() {
         </div>
       </div>
 
-      <div className="space-y-3">
+      {/* Liste */}
+      <div className="space-y-2">
         {filtered.map(({ name, latest, all }) => {
           const meta = latest.risk_level
             ? RISK_META[latest.risk_level as keyof typeof RISK_META]
@@ -92,14 +94,18 @@ export default function AssessmentsPage() {
           const hasMultiple = all.length > 1
 
           return (
-            <div key={name} className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
-              <div className="p-5 flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center
-                    justify-center text-2xl">🏭</div>
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <div className="font-bold text-slate-900">{name}</div>
+            <div key={name} className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+
+              {/* Ana satır */}
+              <div className="px-5 py-4 flex items-center gap-4">
+
+                {/* Sol: ikon + firma bilgisi */}
+                <div className="flex items-center gap-3 flex-1 min-w-0">
+                  <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center
+                    justify-center text-lg flex-shrink-0">🏭</div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-slate-900 text-sm">{name}</span>
                       {latest.revision_number > 1 && (
                         <span className="text-xs bg-purple-100 text-purple-700 font-bold
                           px-2 py-0.5 rounded-full">
@@ -107,32 +113,33 @@ export default function AssessmentsPage() {
                         </span>
                       )}
                       {hasMultiple && (
-                        <span className="text-xs bg-slate-100 text-slate-500 font-bold
+                        <span className="text-xs bg-blue-50 text-blue-500 font-bold
                           px-2 py-0.5 rounded-full">
-                          {all.length} değerlendirme
+                          {all.length} revizyon
                         </span>
                       )}
                     </div>
-                    <div className="text-sm text-slate-400 mt-0.5 flex items-center gap-2">
+                    <div className="text-xs text-slate-400 mt-0.5 truncate">
                       {latest.facility_type && <span>{latest.facility_type}</span>}
-                      <span>·</span>
+                      {latest.facility_type && <span className="mx-1">·</span>}
                       <span>{latest.assessment_date}</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  {latest.status === 'completed' && (
+                {/* Orta: skor + progress */}
+                <div className="flex items-center gap-3 w-48 flex-shrink-0">
+                  {latest.status === 'completed' ? (
                     <>
-                      <div className="text-center">
-                        <div className="text-2xl font-black text-slate-900">
+                      <div className="text-right w-12">
+                        <div className="text-xl font-black text-slate-900">
                           {latest.total_score}
                         </div>
                         <div className="text-xs text-slate-400">/ 100</div>
                       </div>
-                      <div className="w-20">
-                        <div className="h-2 bg-slate-100 rounded-full">
-                          <div className="h-full rounded-full"
+                      <div className="flex-1">
+                        <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
+                          <div className="h-full rounded-full transition-all"
                             style={{
                               width: `${latest.total_score}%`,
                               background: meta?.color || '#94a3b8'
@@ -140,64 +147,79 @@ export default function AssessmentsPage() {
                         </div>
                       </div>
                     </>
-                  )}
-
-                  {meta ? (
-                    <span style={{
-                      background: meta.bg,
-                      color: meta.color,
-                      borderColor: meta.border
-                    }} className="px-3 py-1 rounded-full text-xs font-bold border">
-                      {meta.label}
-                    </span>
                   ) : (
-                    <span className="px-3 py-1 rounded-full text-xs font-bold
-                      bg-slate-100 text-slate-500 border border-slate-200">
-                      Taslak
-                    </span>
+                    <div className="text-xs text-slate-400 italic">Henüz tamamlanmadı</div>
                   )}
+                </div>
 
+                {/* Sağ: risk badge + sabit butonlar */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {/* Risk badge */}
+                  <div className="w-20 text-center">
+                    {meta ? (
+                      <span style={{ background: meta.bg, color: meta.color }}
+                        className="px-2.5 py-1 rounded-full text-xs font-bold inline-block">
+                        {meta.label}
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-1 rounded-full text-xs font-bold
+                        bg-slate-100 text-slate-500 inline-block">
+                        Taslak
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Ana aksiyon */}
                   <Link
                     href={latest.status === 'completed'
                       ? `/dashboard/assessments/${latest.id}/result`
                       : `/dashboard/assessments/${latest.id}`}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2
-                      rounded-xl text-xs font-bold transition">
+                    className={`px-4 py-2 rounded-xl text-xs font-bold transition w-28 text-center
+                      ${latest.status === 'completed'
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-amber-500 hover:bg-amber-600 text-white'}`}>
                     {latest.status === 'completed' ? '📊 Raporu Gör' : '✏️ Devam Et'}
                   </Link>
 
+                  {/* Tarihçe */}
                   <Link
                     href={`/dashboard/facilities/${latest.facility_id || latest.id}`}
                     className="border border-slate-200 hover:bg-slate-50 text-slate-600
-                      px-3 py-2 rounded-xl text-xs font-bold transition">
+                      px-3 py-2 rounded-xl text-xs font-bold transition w-24 text-center">
                     🕐 Tarihçe
                   </Link>
 
-                  {hasMultiple && (
-                    <button onClick={() => toggleExpand(name)}
-                      className="border border-slate-200 hover:bg-slate-50 text-slate-600
-                        w-9 h-9 rounded-xl text-xs font-bold transition flex items-center
-                        justify-center">
-                      {isExpanded ? '▲' : '▼'}
-                    </button>
-                  )}
+                  {/* Revizyon aç/kapat */}
+                  <div className="w-8">
+                    {hasMultiple && (
+                      <button onClick={() => toggleExpand(name)}
+                        className="w-8 h-8 border border-slate-200 hover:bg-slate-50
+                          rounded-xl text-xs font-bold transition flex items-center
+                          justify-center text-slate-500">
+                        {isExpanded ? '▲' : '▼'}
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
+              {/* Revizyon geçmişi */}
               {isExpanded && hasMultiple && (
-                <div className="border-t border-slate-100 bg-slate-50">
-                  {all.slice(1).map(a => {
+                <div className="border-t border-slate-100 bg-slate-50/80">
+                  {all.slice(1).map((a, idx) => {
                     const aMeta = a.risk_level
                       ? RISK_META[a.risk_level as keyof typeof RISK_META]
                       : null
                     return (
                       <div key={a.id}
-                        className="px-5 py-3 flex justify-between items-center
-                          border-b border-slate-100 last:border-0">
-                        <div className="flex items-center gap-3">
+                        className="px-5 py-3 flex items-center gap-4
+                          border-b border-slate-100 last:border-0 hover:bg-white/60 transition">
+
+                        {/* Sol */}
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
                           <div className="w-8 h-8 bg-white border border-slate-200
-                            rounded-lg flex items-center justify-center">
-                            <span className="text-xs font-black text-slate-400">
+                            rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs font-black text-purple-500">
                               R{a.revision_number}
                             </span>
                           </div>
@@ -206,33 +228,62 @@ export default function AssessmentsPage() {
                               {a.assessment_date}
                             </div>
                             {a.notes && (
-                              <div className="text-xs text-slate-400">{a.notes}</div>
+                              <div className="text-xs text-slate-400 mt-0.5 truncate max-w-xs">
+                                {a.notes}
+                              </div>
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center gap-3">
-                          {a.status === 'completed' && (
-                            <div className="text-sm font-black text-slate-700">
-                              {a.total_score}
-                              <span className="text-xs font-normal text-slate-400"> / 100</span>
-                            </div>
-                          )}
-                          {aMeta ? (
-                            <span style={{ background: aMeta.bg, color: aMeta.color }}
-                              className="px-2 py-0.5 rounded-full text-xs font-bold">
-                              {aMeta.label}
-                            </span>
+
+                        {/* Orta: skor */}
+                        <div className="flex items-center gap-3 w-48 flex-shrink-0">
+                          {a.status === 'completed' ? (
+                            <>
+                              <div className="text-right w-12">
+                                <div className="text-sm font-black text-slate-700">
+                                  {a.total_score}
+                                </div>
+                                <div className="text-xs text-slate-400">/ 100</div>
+                              </div>
+                              <div className="flex-1">
+                                <div className="h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                  <div className="h-full rounded-full"
+                                    style={{
+                                      width: `${a.total_score}%`,
+                                      background: aMeta?.color || '#94a3b8'
+                                    }} />
+                                </div>
+                              </div>
+                            </>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-full text-xs font-bold
-                              bg-slate-100 text-slate-500">Taslak</span>
+                            <div className="text-xs text-slate-400 italic">Taslak</div>
                           )}
+                        </div>
+
+                        {/* Sağ */}
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <div className="w-20 text-center">
+                            {aMeta ? (
+                              <span style={{ background: aMeta.bg, color: aMeta.color }}
+                                className="px-2 py-0.5 rounded-full text-xs font-bold inline-block">
+                                {aMeta.label}
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full text-xs font-bold
+                                bg-slate-100 text-slate-500 inline-block">Taslak</span>
+                            )}
+                          </div>
                           <Link
                             href={a.status === 'completed'
                               ? `/dashboard/assessments/${a.id}/result`
                               : `/dashboard/assessments/${a.id}`}
-                            className="text-xs font-bold text-blue-600 hover:text-blue-700">
-                            Görüntüle →
+                            className="px-4 py-2 rounded-xl text-xs font-bold transition
+                              w-28 text-center border border-slate-200 hover:bg-slate-100
+                              text-slate-600">
+                            {a.status === 'completed' ? '📊 Raporu Gör' : '✏️ Devam Et'}
                           </Link>
+                          <div className="w-24" />
+                          <div className="w-8" />
                         </div>
                       </div>
                     )
