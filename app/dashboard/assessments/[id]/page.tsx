@@ -160,7 +160,38 @@ export default function AssessmentFormPage() {
           <div className="mt-2 text-xs text-slate-400">{answeredCount}/20 kriter</div>
         </div>
 
+{/* Ağırlık ayarı */}
+<div className="p-3 border-b border-slate-100">
+  <div className="text-xs font-bold text-slate-400 uppercase mb-2">BOYUT AĞIRLIKLARI</div>
+  {DIMENSIONS.map((dim, i) => {
+    const key = `w${i + 1}` as keyof typeof weights
+    const pct = Math.round(weights[key] * 100)
+    return (
+      <div key={dim.id} className="mb-2">
+        <div className="flex justify-between text-xs mb-0.5">
+          <span className="text-slate-500">{dim.name}</span>
+          <span className="font-bold" style={{ color: dim.color }}>%{pct}</span>
+        </div>
+        <input type="range" min={5} max={60} step={5}
+          value={pct}
+          onChange={e => {
+            const val = parseInt(e.target.value) / 100
+            setWeights(w => ({ ...w, [key]: val }))
+          }}
+          className="w-full h-1 accent-blue-600"
+        />
+      </div>
+    )
+  })}
+  <div className={`text-xs font-bold text-center py-1 rounded-lg mt-1
+    ${Math.round((weights.w1+weights.w2+weights.w3+weights.w4)*100) === 100
+      ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-500'}`}>
+    Toplam: %{Math.round((weights.w1+weights.w2+weights.w3+weights.w4)*100)}
+  </div>
+</div>
+        
         {/* Boyut sekmeleri */}
+        
         <div className="p-3 space-y-1">
           {DIMENSIONS.map(dim => {
             const dimCriteria = dim.criteria
