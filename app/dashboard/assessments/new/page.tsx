@@ -21,24 +21,37 @@ export default function NewAssessmentPage() {
   const [existingFacilities, setExistingFacilities] = useState<any[]>([])
   const [selectedFacility, setSelectedFacility] = useState<any>(null)
   const [facilitySearch, setFacilitySearch] = useState('')
+  const [tenantId, setTenantId] = useState<string | null>(null)
 
   useEffect(() => {
-    // Mevcut firmaları çek (benzersiz facility_name listesi)
-    supabase.from('assessments')
-      .select('facility_name, facility_type, facility_id, revision_number')
-      .order('facility_name')
-      .then(({ data }) => {
-        if (!data) return
-        // Her firmadan en son revizyonu al
-        const map = new Map<string, any>()
-        data.forEach(a => {
-          const existing = map.get(a.facility_name)
-          if (!existing || a.revision_number > existing.revision_number) {
-            map.set(a.facility_name, a)
-          }
-        })
-        setExistingFacilities(Array.from(map.values()))
+    async function init() {
+      // Kullanıcının tenant_id'sini al
+      const { data: authData } = await supabase.auth.getUser()
+      if (authData.user) {
+        const { data: userData } = await supabase
+          .from('users')
+          .select('tenant_id')
+          .eq('id', authData.user.id)
+          .single()
+        if (userData) setTenantId(userData.tenant_id)
+      }
+
+      // Mevcut firmaları çek
+      const { data } = await supabase
+        .from('assessments')
+        .select('facility_name, facility_type, facility_id, revision_number')
+        .order('facility_name')
+      if (!data) return
+      const map = new Map<string, any>()
+      data.forEach(a => {
+        const existing = map.get(a.facility_name)
+        if (!existing || a.revision_number > existing.revision_number) {
+          map.set(a.facility_name, a)
+        }
       })
+      setExistingFacilities(Array.from(map.values()))
+    }
+    init()
   }, [])
 
   function makeSlug(name: string) {
@@ -52,6 +65,10 @@ export default function NewAssessmentPage() {
     const name = mode === 'revision' ? selectedFacility?.facility_name : facilityName
     if (!name) { toast.error('Tesis adı gerekli'); return }
     if (!date) { toast.error('Tarih gerekli'); return }
+    if (mode === 'revision' && !selectedFacility) {
+      toast.error('Lütfen bir firma seçin'); return
+    }
+    if (!tenantId) { toast.error('Oturum hatası'); return }
     setLoading(true)
 
     const slug = mode === 'revision'
@@ -60,8 +77,8 @@ export default function NewAssessmentPage() {
 
     let revisionNumber = 1
     if (mode === 'revision' && selectedFacility) {
-      // Bu firmaya ait en yüksek revizyonu bul
-      const { data: prev } = await supabase.from('assessments')
+      const { data: prev } = await supabase
+        .from('assessments')
         .select('revision_number')
         .eq('facility_name', selectedFacility.facility_name)
         .order('revision_number', { ascending: false })
@@ -70,6 +87,7 @@ export default function NewAssessmentPage() {
     }
 
     const { data, error } = await supabase.from('assessments').insert({
+      tenant_id: tenantId,
       facility_name: name,
       facility_type: mode === 'revision' ? selectedFacility.facility_type : facilityType,
       facility_id: slug,
@@ -83,7 +101,9 @@ export default function NewAssessmentPage() {
 
     setLoading(false)
     if (error) { toast.error('Hata: ' + error.message); return }
-    toast.success(mode === 'revision' ? `R${revisionNumber} revizyonu oluşturuldu!` : 'Değerlendirme oluşturuldu!')
+    toast.success(mode === 'revision'
+      ? `R${revisionNumber} revizyonu oluşturuldu!`
+      : 'Değerlendirme oluşturuldu!')
     router.push(`/dashboard/assessments/${data.id}`)
   }
 
@@ -134,7 +154,6 @@ export default function NewAssessmentPage() {
       <div className="bg-white rounded-2xl border border-slate-100 p-6 space-y-5">
 
         {mode === 'revision' ? (
-          /* Firma seçimi */
           <div>
             <label className="text-xs font-bold text-slate-400 uppercase block mb-2">
               Firma Seç
@@ -146,7 +165,7 @@ export default function NewAssessmentPage() {
               className="w-full border border-slate-200 rounded-xl px-4 py-2.5 text-sm
                 focus:outline-none focus:border-purple-400 mb-3"
             />
-            <div className="space-y-2 max-h-48 overflow-y-auto">
+            <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
               {filteredFacilities.map(f => (
                 <button key={f.facility_name}
                   onClick={() => setSelectedFacility(f)}
@@ -168,7 +187,9 @@ export default function NewAssessmentPage() {
                 </button>
               ))}
               {filteredFacilities.length === 0 && (
-                <div className="text-center py-4 text-sm text-slate-400">Firma bulunamadı</div>
+                <div className="text-center py-4 text-sm text-slate-400">
+                  Firma bulunamadı
+                </div>
               )}
             </div>
             {selectedFacility && (
@@ -181,7 +202,6 @@ export default function NewAssessmentPage() {
             )}
           </div>
         ) : (
-          /* Yeni firma formu */
           <>
             <div>
               <label className="text-xs font-bold text-slate-400 uppercase block mb-2">
@@ -206,7 +226,6 @@ export default function NewAssessmentPage() {
           </>
         )}
 
-        {/* Tarih */}
         <div>
           <label className="text-xs font-bold text-slate-400 uppercase block mb-2">
             Değerlendirme Tarihi *
@@ -216,7 +235,6 @@ export default function NewAssessmentPage() {
               focus:outline-none focus:border-blue-400" />
         </div>
 
-        {/* Not */}
         <div>
           <label className="text-xs font-bold text-slate-400 uppercase block mb-2">
             Ön Not (İsteğe Bağlı)
@@ -240,7 +258,9 @@ export default function NewAssessmentPage() {
                   ? 'bg-purple-600 hover:bg-purple-700'
                   : 'bg-blue-600 hover:bg-blue-700'
               }`}>
-            {loading ? 'Oluşturuluyor...' : mode === 'revision'
+            {loading
+              ? 'Oluşturuluyor...'
+              : mode === 'revision'
               ? '🔄 Revizyonu Başlat'
               : '→ Değerlendirmeyi Başlat'}
           </button>
