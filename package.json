@@ -1,0 +1,31 @@
+{
+  "name": "ifsc-index",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "dependencies": {
+    "next": "15.1.0",
+    "react": "^19",
+    "react-dom": "^19",
+    "@supabase/supabase-js": "^2.43.4",
+    "@supabase/ssr": "^0.3.0",
+    "resend": "^3.2.0",
+    "react-hot-toast": "^2.4.1",
+    "lucide-react": "^0.378.0",
+    "recharts": "^2.12.7",
+    "jspdf": "^2.5.1",
+    "jspdf-autotable": "^3.8.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "typescript": "^5",
+    "tailwindcss": "^3.4.1",
+    "postcss": "^8",
+    "autoprefixer": "^10"
+  }
+}
