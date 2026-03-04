@@ -289,10 +289,12 @@ export default function AssessmentFormPage() {
                   <span style={{ fontSize:11, fontWeight:900, color:dim.color, width:20 }}>
                     {dim.id}
                   </span>
-                  <input type="range" min={5} max={60} step={5}
-                    value={weights[key]}
-                    onChange={e => setWeights(p => ({ ...p, [key]: Number(e.target.value) }))}
-                    style={{ flex:1, accentColor:dim.color, cursor:'pointer' }} />
+<input type="range" min={5} max={60} step={5}
+    value={weights[key]}
+    onChange={e => setWeights(p => ({ ...p, [key]: Number(e.target.value) }))}
+    style={{ flex:1, accentColor:dim.color, cursor:'pointer',
+      background:'#e2e8f0', height:4, borderRadius:4,
+      outline:'none', border:'none', appearance:'auto' }} />
                   <span style={{ fontSize:11, fontWeight:900, color:'#334155', width:28,
                     textAlign:'right' }}>%{weights[key]}</span>
                 </div>
